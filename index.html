@@ -107,6 +107,185 @@
 <div id="wheelBox"><div class="prizeText" id="prizeDisplay">?</div></div>
 <p id="result"></p>
 
+  <!-- Add this button under the wheel -->
+<button onclick="startDungeon()">Play Dungeon</button>
+
+<!-- Dungeon game container -->
+<div id="dungeonContainer" class="hidden">
+  <canvas id="dungeonCanvas" width="480" height="480" style="border:3px solid white"></canvas>
+  <div id="mobileControls" class="hidden">
+    <button onclick="movePlayer(0,-1)">⬆️</button>
+    <div>
+      <button onclick="movePlayer(-1,0)">⬅️</button>
+      <button onclick="movePlayer(1,0)">➡️</button>
+    </div>
+    <button onclick="movePlayer(0,1)">⬇️</button>
+    <button onclick="attack()">⚔️</button>
+  </div>
+  <button onclick="exitDungeon()">Exit Dungeon</button>
+</div>
+
+<script>
+/* === Dungeon Game === */
+const tileSize=32;
+const mapSize=15; // 15x15
+let dungeonGame=null;
+
+function startDungeon(){
+  document.getElementById("gameBox").classList.add("hidden");
+  document.getElementById("dungeonContainer").classList.remove("hidden");
+  if(!accounts[currentUser].dungeon){
+    accounts[currentUser].dungeon={lives:3,points:0,level:1};
+  }
+  dungeonGame=new DungeonGame(currentUser);
+}
+
+function exitDungeon(){
+  dungeonGame=null;
+  saveData();
+  document.getElementById("dungeonContainer").classList.add("hidden");
+  document.getElementById("gameBox").classList.remove("hidden");
+}
+
+class DungeonGame{
+  constructor(user){
+    this.user=user;
+    this.canvas=document.getElementById("dungeonCanvas");
+    this.ctx=this.canvas.getContext("2d");
+    this.map=[];
+    this.player={x:7,y:7,hasAttack:false};
+    this.enemies=[];
+    this.items=[];
+    this.load();
+    this.generateRoom();
+    this.loop();
+    window.addEventListener("keydown",e=>this.handleInput(e));
+  }
+  load(){
+    let save=accounts[this.user].dungeon;
+    this.lives=save.lives;
+    this.level=save.level;
+  }
+  save(){
+    accounts[this.user].dungeon={lives:this.lives,level:this.level};
+    saveData();
+  }
+  generateRoom(){
+    this.map=[];
+    for(let y=0;y<mapSize;y++){
+      let row=[];
+      for(let x=0;x<mapSize;x++){
+        row.push(Math.random()<0.2?"#":"."); // wall or floor
+      }
+      this.map.push(row);
+    }
+    this.map[this.player.y][this.player.x]=".";
+    // Enemies
+    this.enemies=[];
+    for(let i=0;i<3+this.level;i++){
+      this.enemies.push({x:Math.floor(Math.random()*mapSize),y:Math.floor(Math.random()*mapSize)});
+    }
+    // Items
+    this.items=[];
+    if(Math.random()<0.2)this.items.push({x:Math.floor(Math.random()*mapSize),y:Math.floor(Math.random()*mapSize),type:"life"});
+    if(Math.random()<0.3)this.items.push({x:Math.floor(Math.random()*mapSize),y:Math.floor(Math.random()*mapSize),type:"points"});
+  }
+  draw(){
+    this.ctx.fillStyle="black";this.ctx.fillRect(0,0,this.canvas.width,this.canvas.height);
+    for(let y=0;y<mapSize;y++){
+      for(let x=0;x<mapSize;x++){
+        if(this.map[y][x]==="#"){this.ctx.fillStyle="gray";}
+        else{this.ctx.fillStyle="black";}
+        this.ctx.fillRect(x*tileSize,y*tileSize,tileSize,tileSize);
+      }
+    }
+    // Items
+    this.items.forEach(it=>{
+      this.ctx.fillStyle=it.type==="life"?"red":"gold";
+      this.ctx.fillRect(it.x*tileSize+8,it.y*tileSize+8,16,16);
+    });
+    // Enemies
+    this.ctx.fillStyle="green";
+    this.enemies.forEach(e=>this.ctx.fillRect(e.x*tileSize+4,e.y*tileSize+4,24,24));
+    // Player
+    this.ctx.fillStyle="cyan";
+    this.ctx.fillRect(this.player.x*tileSize+4,this.player.y*tileSize+4,24,24);
+    // HUD
+    this.ctx.fillStyle="white";this.ctx.fillText("Lives:"+this.lives+" Level:"+this.level,10,15);
+  }
+  move(dx,dy){
+    let nx=this.player.x+dx,ny=this.player.y+dy;
+    if(nx<0||ny<0||nx>=mapSize||ny>=mapSize)return;
+    if(this.map[ny][nx]==="#")return;
+    this.player.x=nx;this.player.y=ny;
+    // Check items
+    this.items=this.items.filter(it=>{
+      if(it.x===nx&&it.y===ny){
+        if(it.type==="life")this.lives++;
+        if(it.type==="points")accounts[this.user].points+=10;
+        return false;
+      }
+      return true;
+    });
+    // Check enemy
+    for(let e of this.enemies){
+      if(e.x===nx&&e.y===ny){
+        this.lives--;
+        if(this.lives<=0){this.gameOver();}
+      }
+    }
+  }
+  handleInput(e){
+    if(e.key==="w")this.move(0,-1);
+    if(e.key==="s")this.move(0,1);
+    if(e.key==="a")this.move(-1,0);
+    if(e.key==="d")this.move(1,0);
+    if(e.key===" ")this.attack();
+  }
+  moveEnemies(){
+    this.enemies.forEach(e=>{
+      let dir=[[1,0],[-1,0],[0,1],[0,-1]][Math.floor(Math.random()*4)];
+      let nx=e.x+dir[0],ny=e.y+dir[1];
+      if(nx>=0&&ny>=0&&nx<mapSize&&ny<mapSize&&this.map[ny][nx]==="."){e.x=nx;e.y=ny;}
+      if(nx===this.player.x&&ny===this.player.y){this.lives--;if(this.lives<=0)this.gameOver();}
+    });
+  }
+  attack(){
+    this.enemies=this.enemies.filter(e=>{
+      let dist=Math.abs(e.x-this.player.x)+Math.abs(e.y-this.player.y);
+      return dist>1;
+    });
+  }
+  loop(){
+    if(!dungeonGame)return;
+    this.moveEnemies();
+    this.draw();
+    this.save();
+    requestAnimationFrame(()=>this.loop());
+  }
+  gameOver(){
+    if(accounts[this.user].points>=100){
+      if(confirm("You died! Spend 100 points to revive?")){
+        accounts[this.user].points-=100;
+        this.lives=3;
+      } else {
+        alert("Progress lost!");
+        accounts[this.user].dungeon=null;
+        exitDungeon();
+      }
+    } else {
+      alert("You died and don’t have enough points. Progress lost!");
+      accounts[this.user].dungeon=null;
+      exitDungeon();
+    }
+  }
+}
+
+function movePlayer(dx,dy){if(dungeonGame)dungeonGame.move(dx,dy);}
+function attack(){if(dungeonGame)dungeonGame.attack();}
+</script>
+
+
 <h3>Inventory</h3>
 <ul id="inventory"></ul>
 
