@@ -1,793 +1,270 @@
+// GET YOUR BOOTY OUT OF MY CODE
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<title>Questwork 4.1</title>
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta charset="UTF-8">
+<title>Questwork</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-  /* --- base UI --- */
-  :root{--accent1:#ff6a00;--accent2:#ee0979;}
-  body{margin:0;font-family:"Segoe UI",system-ui,Arial; background:linear-gradient(135deg,#1f1c2c,#928DAB);color:#fff;min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:24px;}
-  .card{background:rgba(0,0,0,0.6);padding:18px;border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.45);width:100%;max-width:760px;margin:8px;}
-  h2,h3{margin:4px 0 12px;color:#ffdd57}
-  input,select,button{font-size:1rem;border-radius:8px;padding:10px;border:none;outline:none}
-  input{width:calc(100% - 24px);margin:6px 0;background:#f4f4f4;color:#000}
-  button{cursor:pointer;background:linear-gradient(135deg,var(--accent1),var(--accent2));color:#fff;font-weight:700;padding:10px 12px}
-  .small{padding:8px 10px;font-size:.95rem}
-  .hidden{display:none}
-  #wheelBox{width:260px;height:60px;margin:12px auto;border:3px solid #fff;border-radius:8px;background:rgba(0,0,0,0.65);display:flex;align-items:center;justify-content:center}
-  .prizeText{font-weight:800;color:#fff}
-  #inventory{list-style:none;padding:0;margin:12px 0;max-height:140px;overflow:auto}
-  #inventory li{background:rgba(255,255,255,0.06);padding:8px;border-radius:8px;margin:6px 0;display:flex;justify-content:space-between;align-items:center}
-  .delete-btn{background:crimson;padding:6px;border-radius:6px;color:white;border:none}
-  #teacherPanel{margin-top:10px}
-  #teacherLoginBtn{background:linear-gradient(135deg,#555,#999);padding:8px 10px;border-radius:8px}
-  /* dungeon layout */
-  #dungeonContainer{margin-top:12px}
-  #dungeonOverlay{position:relative;display:flex;flex-direction:column;align-items:center}
-  #dungeonHUD{display:flex;gap:16px;align-items:center;margin-bottom:8px}
-  #dungeonCanvas{border:3px solid white;border-radius:8px;background:#000;display:block}
-  #mobileControls{display:none;margin-top:8px;gap:8px}
-  #mobileControls button{font-size:1.1rem;padding:10px;border-radius:8px}
-  #fullscreenBtn{position:absolute;right:10px;top:8px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);padding:6px 8px;border-radius:6px;color:#fff}
-  @media(max-width:640px){
-    #mobileControls{display:flex;flex-direction:column;align-items:center}
-    #dungeonCanvas{width:92vw;height:92vw}
+  body {
+    margin:0;
+    font-family:'Segoe UI', sans-serif;
+    background: linear-gradient(135deg,#1f1c2c 0%,#928DAB 100%);
+    color:#fff;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    flex-direction:column;
+    text-align:center;
+    transition:background 0.5s ease;
   }
-  /* tiny tip text */
-  .tip{font-size:.85rem;color:#ddd;margin-top:8px}
+  .card {
+    background: rgba(0,0,0,0.6);
+    padding:20px;
+    border-radius:16px;
+    box-shadow:0 8px 20px rgba(0,0,0,0.4);
+    max-width:550px;
+    width:95%;
+    margin:10px;
+    animation:fadeIn 0.5s ease-in;
+  }
+  h2,h3{margin-top:0;color:#ffdd57;text-shadow:1px 1px 4px #000;}
+  input,button,select{
+    width:90%;padding:12px;margin:8px 0;border-radius:8px;border:none;font-size:1rem;outline:none;
+  }
+  input{background:#f4f4f4;}
+  button{
+    background: linear-gradient(135deg,#ff6a00,#ee0979);
+    color:white;font-weight:bold;cursor:pointer;transition:transform 0.2s,opacity 0.3s;
+  }
+  button:hover{transform:scale(1.05);opacity:0.9;}
+  .hidden{display:none;}
+  #inventory{list-style:none;padding:0;margin:0;max-height:150px;overflow-y:auto;}
+  #inventory li{
+    background: rgba(255,255,255,0.1);
+    margin:5px 0;
+    padding:8px;
+    border-radius:6px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .delete-btn{
+    background: crimson;color:white;border:none;border-radius:6px;padding:3px 8px;cursor:pointer;font-size:0.8rem;
+  }
+  #wheelBox{
+    margin:20px auto;
+    width:250px;
+    height:60px;
+    overflow:hidden;
+    border:3px solid #fff;
+    border-radius:8px;
+    background: rgba(0,0,0,0.8);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+  }
+  .prizeText{
+    font-size:1.4rem;font-weight:bold;
+    transition:transform 0.15s ease;
+  }
+  .theme-dog{background:url('https://i.imgur.com/9i5G79G.jpg') center/cover;}
+  .theme-pirate{background:url('https://i.imgur.com/m5mG93q.jpeg') center/cover;}
+  .theme-neon{background:linear-gradient(135deg,#0f0f0f,#00ffcc);}
+  .theme-spooky{background:url('https://i.imgur.com/jyCOb3u.jpg') center/cover;}
+  @keyframes fadeIn{
+    from{opacity:0;transform:translateY(10px);}
+    to{opacity:1;transform:translateY(0);}
+  }
+  /* Teacher section styles */
+  #teacherLoginBtn{
+    width:auto;
+    padding:6px 12px;
+    font-size:0.9rem;
+    margin-top:15px;
+    background:linear-gradient(135deg,#555,#999);
+  }
+  #teacherPanel{margin-top:20px;}
 </style>
 </head>
 <body>
-  <div class="card" id="mainCard">
-    <!-- LOGIN -->
-    <div id="loginCard">
-      <h2>Questwork Login</h2>
-      <input id="username" placeholder="Username" />
-      <input id="password" placeholder="Password" type="password" />
-      <div style="display:flex;gap:8px;justify-content:center;margin-top:8px">
-        <button onclick="signup()" class="small">Sign Up</button>
-        <button onclick="login()" class="small">Sign In</button>
-      </div>
-    </div>
+<div class="card" id="loginCard">
+<h2>Questwork Login</h2>
+<input type="text" id="username" placeholder="Username">
+<input type="password" id="password" placeholder="Password">
+<button onclick="signup()">Sign Up</button>
+<button onclick="login()">Sign In</button>
+</div>
 
-    <!-- GAME BOX -->
-    <div id="gameBox" class="hidden">
-      <h2>Welcome, <span id="playerName"></span>!</h2>
-      <p>⭐ Points: <span id="points">0</span></p>
+<div class="card hidden" id="gameBox">
+<h2>Welcome, <span id="playerName"></span>!</h2>
+<p>⭐ Points: <span id="points">0</span></p>
 
-      <div id="wheelButtons">
-        <button onclick="spin()" class="small">Spin Wheel (5 pts)</button>
-      </div>
+<div id="wheelButtons">
+<button onclick="spin()">Spin Wheel</button>
+</div>
 
-      <div id="wheelBox"><div class="prizeText" id="prizeDisplay">?</div></div>
-      <p id="result"></p>
+<div id="wheelBox"><div class="prizeText" id="prizeDisplay">?</div></div>
+<p id="result"></p>
 
-      <div style="display:flex;gap:10px;justify-content:center;margin-top:10px">
-        <button onclick="startDungeon()" class="small">Play Dungeon</button>
-        <button onclick="openInventory()" class="small">Inventory</button>
-      </div>
+<h3>Inventory</h3>
+<ul id="inventory"></ul>
 
-      <!-- DUNGEON -->
-      <div id="dungeonContainer" class="hidden">
-        <div id="dungeonOverlay">
-          <div id="dungeonHUD">
-            <div>Lives: <strong id="dLives">0</strong></div>
-            <div>Level: <strong id="dLevel">0</strong></div>
-            <div>Dungeon Score: <strong id="dScore">0</strong></div>
-          </div>
-          <button id="fullscreenBtn" onclick="toggleFullscreen()">⤢ Fullscreen</button>
-          <canvas id="dungeonCanvas" width="480" height="480"></canvas>
+<h3>Theme Selector</h3>
+<select id="themeSelect" onchange="applyTheme(this.value)">
+<option value="">--Choose Theme--</option>
+</select>
 
-          <!-- mobile controls -->
-          <div id="mobileControls">
-            <button onclick="movePlayer(0,-1)">⬆️</button>
-            <div style="display:flex;gap:8px">
-              <button onclick="movePlayer(-1,0)">⬅️</button>
-              <button onclick="movePlayer(1,0)">➡️</button>
-            </div>
-            <button onclick="movePlayer(0,1)">⬇️</button>
-            <button onclick="attack()">⚔️ Attack</button>
-            <div style="display:flex;gap:8px;margin-top:6px">
-              <button onclick="exitDungeon()" class="small">Exit Dungeon</button>
-              <button onclick="regenerateRoom()" class="small">Regenerate Room</button>
-            </div>
-          </div>
-
-          <!-- desktop exit -->
-          <div style="display:flex;gap:8px;justify-content:center;margin-top:10px">
-            <button onclick="exitDungeon()" class="small">Exit Dungeon</button>
-            <button onclick="regenerateRoom()" class="small">Regenerate Room</button>
-          </div>
-
-          <p class="tip">Tip: collect gold squares for points, red hearts give rare extra lives, blue orbs give temporary shields. Press space to attack adjacent enemies.</p>
-        </div>
-      </div>
-
-      <!-- Inventory & Theme -->
-      <h3>Inventory</h3>
-      <ul id="inventory"></ul>
-
-      <h3>Theme Selector</h3>
-      <select id="themeSelect" onchange="applyTheme(this.value)">
-        <option value="">--Choose Theme--</option>
-      </select>
-
-      <!-- teacher -->
-      <button id="teacherLoginBtn" onclick="showTeacherLogin()">Teacher</button>
-      <div id="teacherPanel" class="hidden">
-        <h3>Teacher Controls</h3>
-        <input id="pointsToAdd" type="number" placeholder="Points to add" />
-        <button onclick="addPoints()">Add Points</button>
-        <button onclick="logoutTeacher()">Log Out</button>
-      </div>
-    </div>
-  </div>
+<!-- Teacher toggle -->
+<button id="teacherLoginBtn" onclick="showTeacherLogin()">Teacher</button>
+<div id="teacherPanel" class="hidden">
+  <h3>Teacher Controls</h3>
+  <input type="number" id="pointsToAdd" placeholder="Points to add">
+  <button onclick="addPoints()">Add Points</button>
+  <button onclick="logoutTeacher()">Log Out</button>
+</div>
+</div>
 
 <script>
-/* ========= SINGLE SCRIPT: CLEAN + FUNCTIONAL ===========
- - No duplicate global accounts vars
- - Dungeon is stable, drawn, saved to localStorage
- - Exit works even if the loop isn't running
- - Handles unsigned user trying to Play Dungeon
- - Mobile controls are shown for touch devices
-======================================================= */
+const TEACHER_SECRET="7545";
 
-/* ---------- persistent storage ---------- */
-const STORAGE_KEY = "questwork_accounts_v4";
-let accounts = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
-let currentUser = null;
-let teacherMode = false;
-const TEACHER_SECRET = "QUEST123";
-
-/* Utility save */
-function saveData(){
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(accounts));
-}
-
-/* ---------- initial wheel prizes ---------- */
-const wheelPrizes = [
-  {name:"Sticker Pack",weight:4,refund:2},
+const wheelPrizes=[
+  {name:"Lollipop",weight:4,refund:2},
+  {name:"New Pencil",weight:3},
   {name:"Dog Theme",weight:2,type:"theme"},
-  {name:"Pencil Upgrade",weight:3},
   {name:"Pirate Theme",weight:1,type:"theme"},
   {name:"Neon Theme",weight:1,type:"theme"},
-  {name:"Spooky Theme",weight:1,type:"theme"},
-  {name:"1 Bonus Point",weight:2,type:"points",amount:1},
-  {name:"50 Bonus Points",weight:1,type:"points",amount:50}
+  {name:"Blackness Theme",weight:1,type:"theme"},
+  {name:"50 Points",weight:2,type:"points",amount:50},
+  {name:"100 Points",weight:1,type:"points",amount:100}
 ];
 
-/* ---------- UI helpers ---------- */
-function updateUI(){
-  if(!currentUser) return;
-  document.getElementById("playerName").innerText = currentUser;
-  const acc = accounts[currentUser];
-  document.getElementById("points").innerText = acc.points ?? 0;
+let accounts=JSON.parse(localStorage.getItem("accounts"))||{};
+let currentUser=null;
+let teacherMode=false;
 
-  // inventory
-  const invEl = document.getElementById("inventory");
-  invEl.innerHTML = "";
-  (acc.inventory || []).forEach((it, idx) => {
-    const li = document.createElement("li");
-    li.innerText = it;
-    const del = document.createElement("button");
-    del.className = "delete-btn"; del.innerText = "x";
-    del.onclick = ()=>{ acc.inventory.splice(idx,1); updateUI(); saveData(); };
-    li.appendChild(del);
-    invEl.appendChild(li);
-  });
+function saveData(){localStorage.setItem("accounts",JSON.stringify(accounts));}
 
-  // themes
-  const themeSelect = document.getElementById("themeSelect");
-  themeSelect.innerHTML = "<option value=''>--Choose Theme--</option>";
-  (acc.themes || []).forEach(t => {
-    const opt = document.createElement("option");
-    opt.value = t; opt.innerText = t[0].toUpperCase()+t.slice(1) + " Theme";
-    if(acc.selectedTheme === t) opt.selected = true;
-    themeSelect.appendChild(opt);
-  });
-
-  // apply theme if set
-  if(acc.selectedTheme) applyTheme(acc.selectedTheme);
-  saveData();
-}
-
-/* ---------- account auth ---------- */
 function signup(){
-  const u = document.getElementById("username").value.trim();
-  const p = document.getElementById("password").value;
-  if(!u || !p) return alert("Enter username and password.");
-  if(accounts[u]) return alert("Account exists! Try a different username.");
-  accounts[u] = {
-    password: p,
-    points: 0,
-    inventory: [],
-    themes: [],
-    selectedTheme: "",
-    dungeon: null
-  };
-  saveData();
-  currentUser = u;
-  showGameBox();
+  let u=document.getElementById("username").value;
+  let p=document.getElementById("password").value;
+  if(!u||!p)return alert("Enter username and password.");
+  if(accounts[u])return alert("Account exists!");
+  accounts[u]={password:p,points:0,inventory:[],themes:[],selectedTheme:""};
+  saveData();currentUser=u;startGame();
 }
 
 function login(){
-  const u = document.getElementById("username").value.trim();
-  const p = document.getElementById("password").value;
-  if(!accounts[u]) return alert("No account. Sign up first.");
-  if(accounts[u].password !== p) return alert("Wrong password.");
-  currentUser = u;
-  showGameBox();
+  let u=document.getElementById("username").value;
+  let p=document.getElementById("password").value;
+  if(!accounts[u])return alert("No account. Sign up first.");
+  if(accounts[u].password!==p)return alert("Wrong password.");
+  currentUser=u;startGame();
 }
 
-function showGameBox(){
+function startGame(){
+  document.getElementById("playerName").innerText=currentUser;
+  updateUI();
   document.getElementById("loginCard").classList.add("hidden");
   document.getElementById("gameBox").classList.remove("hidden");
-  updateUI();
 }
 
-/* ---------- wheel ---------- */
 function weightedRandom(items){
-  let total = items.reduce((s,i)=>s+(i.weight||1),0);
-  let r = Math.random()*total;
-  for(const it of items){
-    if(r < (it.weight||1)) return it;
-    r -= (it.weight||1);
-  }
-  return items[0];
+  let total=items.reduce((sum,i)=>sum+i.weight,0);
+  let r=Math.random()*total;
+  for(let i of items){if(r<i.weight)return i;r-=i.weight;}
 }
 
 function spin(){
-  if(!currentUser) return alert("Sign in first.");
-  const acc = accounts[currentUser];
-  if((acc.points||0) < 5) return alert("Not enough points (cost 5).");
-  acc.points -= 5;
-  // animation
-  const prizeDisplay = document.getElementById("prizeDisplay");
-  const result = document.getElementById("result");
-  let step = 0, flips = 30;
-  const anim = setInterval(()=>{
+  let acc=accounts[currentUser];
+  if(acc.points<50)return alert("Not enough points!");
+  acc.points-=50;
+
+  let prize=weightedRandom(wheelPrizes);
+  let prizeDisplay=document.getElementById("prizeDisplay");
+  let result=document.getElementById("result");
+
+  let flips=30,step=0,interval=50;
+  let anim=setInterval(()=>{
     step++;
-    prizeDisplay.innerText = wheelPrizes[Math.floor(Math.random()*wheelPrizes.length)].name;
-    prizeDisplay.style.transform = `scale(${1 + 0.12*Math.sin(step*0.8)})`;
-    if(step >= flips){
+    let fake=wheelPrizes[Math.floor(Math.random()*wheelPrizes.length)].name;
+    prizeDisplay.innerText=fake;
+    let scale=1+0.2*Math.sin(step*0.8);
+    prizeDisplay.style.transform=`scale(${scale})`;
+    if(step>=flips){
       clearInterval(anim);
-      const prize = weightedRandom(wheelPrizes);
-      prizeDisplay.style.transform = "scale(1)";
-      prizeDisplay.innerText = prize.name;
-      if(prize.type === "points") { acc.points += prize.amount; result.innerText = `+${prize.amount} points!`;}
-      else if(prize.type === "theme") {
-        acc.themes = acc.themes || [];
-        const nameKey = prize.name.split(" ")[0].toLowerCase();
-        if(acc.themes.includes(nameKey)){
-          acc.points += prize.refund || 5;
-          result.innerText = `Duplicate theme — refunded ${prize.refund||5} pts.`;
-        } else {
-          acc.themes.push(nameKey);
-          result.innerText = `You unlocked ${prize.name}!`;
-        }
-      } else {
-        acc.inventory = acc.inventory || [];
-        if(acc.inventory.includes(prize.name)) { acc.points += prize.refund || 5; result.innerText = `Duplicate! Refunded ${prize.refund||5} pts.`; }
-        else { acc.inventory.push(prize.name); result.innerText = `You won: ${prize.name}`; }
+      prizeDisplay.innerText=prize.name;
+      prizeDisplay.style.transform="scale(1)";
+      let acc=accounts[currentUser];
+      let already=acc.inventory.includes(prize.name)||acc.themes.includes(prize.name.split(" ")[0].toLowerCase());
+      if(already&&prize.type!=="points"){
+        acc.points+=prize.refund||50;
+        result.innerText=`Duplicate! Refunded ${prize.refund||5} pts.`;
+      } else{
+        if(prize.type==="points")acc.points+=prize.amount;
+        else if(prize.type==="theme")acc.themes.push(prize.name.split(" ")[0].toLowerCase());
+        else acc.inventory.push(prize.name);
+        result.innerText=`🎉 You won: ${prize.name}`;
       }
-      updateUI(); saveData();
+      updateUI();
     }
-  },45);
+    interval+=10;
+  },interval);
 }
 
-/* ---------- themes & teacher ---------- */
-function applyTheme(theme){
-  if(!currentUser) return;
-  const acc = accounts[currentUser];
-  acc.selectedTheme = theme;
-  document.body.className = "";
-  if(theme) document.body.classList.add("theme-"+theme);
+function updateUI(){
+  let acc=accounts[currentUser];
+  document.getElementById("points").innerText=acc.points;
+  let inv=document.getElementById("inventory");
+  inv.innerHTML="";
+  acc.inventory.forEach((item,idx)=>{
+    let li=document.createElement("li");li.innerText=item;
+    let del=document.createElement("button");del.innerText="x";del.className="delete-btn";
+    del.onclick=()=>{acc.inventory.splice(idx,1);updateUI();}
+    li.appendChild(del);inv.appendChild(li);
+  });
+  let themeSelect=document.getElementById("themeSelect");
+  themeSelect.innerHTML="<option value=''>--Choose Theme--</option>";
+  acc.themes.forEach(t=>{
+    let opt=document.createElement("option");opt.value=t;opt.innerText=t[0].toUpperCase()+t.slice(1)+" Theme";
+    if(t===acc.selectedTheme)opt.selected=true;
+    themeSelect.appendChild(opt);
+  });
+  if(acc.selectedTheme)applyTheme(acc.selectedTheme);
   saveData();
 }
 
+function applyTheme(theme){
+  let acc=accounts[currentUser];
+  acc.selectedTheme=theme;
+  document.body.className="";
+  if(theme)document.body.classList.add("theme-"+theme);
+  saveData();
+}
+
+/* Teacher controls */
 function showTeacherLogin(){
-  if(teacherMode) return;
-  const code = prompt("Enter teacher code:");
-  if(code === TEACHER_SECRET){
-    teacherMode = true;
+  if(teacherMode) return; // already logged in
+  let code=prompt("Enter teacher code:");
+  if(code===TEACHER_SECRET){
+    teacherMode=true;
     document.getElementById("teacherPanel").classList.remove("hidden");
     document.getElementById("teacherLoginBtn").classList.add("hidden");
-  } else alert("Wrong code!");
+  } else {
+    alert("Wrong code!");
+  }
 }
 function addPoints(){
-  if(!teacherMode || !currentUser) return alert("Teacher not logged in or no user.");
-  const amt = parseInt(document.getElementById("pointsToAdd").value || "0");
-  if(!amt || amt <= 0) return alert("Enter valid amount");
-  accounts[currentUser].points = (accounts[currentUser].points||0) + amt;
-  updateUI(); saveData();
+  let amt=parseInt(document.getElementById("pointsToAdd").value);
+  if(teacherMode&&amt>0){accounts[currentUser].points+=amt;updateUI();alert("Added "+amt+" points!");}
+  else alert("Enter a valid amount!");
 }
-function logoutTeacher(){ teacherMode=false; document.getElementById("teacherPanel").classList.add("hidden"); document.getElementById("teacherLoginBtn").classList.remove("hidden"); }
-
-/* ---------- Dungeon Game: robust & playable ---------- */
-/* features:
- - map grid with walls and floors
- - player with 3 lives saved in accounts[user].dungeon
- - enemies that chase the player (greedy)
- - items: points, rare extra life, shield
- - persistent save to localStorage
- - continue cost if you die and want to keep progress
- - exit always available
-*/
-
-const DUNGEON = {
-  tileSize: 32,
-  mapSize: 15,
-  continueCost: 200,
-  replayCost: 400
-};
-
-let dungeonGame = null;
-
-function startDungeon(){
-  if(!currentUser) return alert("Please sign in first.");
-  // open UI
-  document.getElementById("gameBox").classList.add("hidden"); // hide main game box for a cleaner transition
-  document.getElementById("dungeonContainer").classList.remove("hidden");
-  // create game instance
-  if(dungeonGame) dungeonGame.destroy();
-  dungeonGame = new Dungeon(currentUser);
-  // expose mobile controls on touch devices
-  if(('ontouchstart' in window) || navigator.maxTouchPoints > 0) document.getElementById("mobileControls").style.display = "flex";
-  else document.getElementById("mobileControls").style.display = "none";
+function logoutTeacher(){
+  teacherMode=false;
+  document.getElementById("teacherPanel").classList.add("hidden");
+  document.getElementById("teacherLoginBtn").classList.remove("hidden");
 }
-
-function exitDungeon(){
-  // allow exit even if dungeonGame is null
-  if(dungeonGame) {
-    dungeonGame.destroy();
-    dungeonGame = null;
-  }
-  // hide dungeon and show main UI
-  document.getElementById("dungeonContainer").classList.add("hidden");
-  document.getElementById("gameBox").classList.remove("hidden");
-  updateUI();
-}
-
-function regenerateRoom(){
-  if(dungeonGame) dungeonGame.generateRoom(true);
-}
-
-/* Dungeon Class */
-class Dungeon {
-  constructor(user){
-    this.user = user;
-    this.canvas = document.getElementById("dungeonCanvas");
-    this.ctx = this.canvas.getContext("2d");
-    this.ts = DUNGEON.tileSize;
-    this.size = DUNGEON.mapSize;
-    this.running = true;
-    this.lastEnemyMove = 0;
-    this.playerShieldUntil = 0;
-    this.playerShieldActive = false;
-    // load or setup
-    this.load();
-    this.bindHandlers();
-    this.resizeCanvasForCSS();
-    window.addEventListener("resize", ()=>this.resizeCanvasForCSS());
-    this.loop();
-    this.autosave = setInterval(()=>this.save(), 1000);
-  }
-
-  load(){
-    const save = (accounts[this.user] && accounts[this.user].dungeon) || null;
-    if(save){
-      // validate fields exist, fallback to defaults
-      this.lives = save.lives ?? 3;
-      this.level = save.level ?? 1;
-      this.score = save.score ?? 0;
-      this.player = save.player ?? {x:7,y:7};
-      this.enemies = save.enemies ?? [];
-      this.items = save.items ?? [];
-      this.map = save.map ?? [];
-      // if map empty generate fresh
-      if(!this.map || this.map.length === 0) this.generateRoom();
-    } else {
-      this.lives = 3;
-      this.level = 1;
-      this.score = 0;
-      this.player = {x: Math.floor(this.size/2), y: Math.floor(this.size/2)};
-      this.enemies = [];
-      this.items = [];
-      this.map = [];
-      this.generateRoom();
-    }
-    this.updateHUD();
-  }
-
-  save(){
-    accounts[this.user] = accounts[this.user] || {};
-    accounts[this.user].dungeon = {
-      lives: this.lives,
-      level: this.level,
-      score: this.score,
-      player: this.player,
-      enemies: this.enemies,
-      items: this.items,
-      map: this.map,
-      lastSaved: Date.now()
-    };
-    saveData();
-  }
-
-  destroy(){
-    this.running = false;
-    window.removeEventListener("keydown", this._keyHandler);
-    if(this.autosave) clearInterval(this.autosave);
-    this.save();
-  }
-
-  bindHandlers(){
-    // keyboard
-    this._keyHandler = (e)=>{
-      if(e.repeat) return;
-      if(e.key === "w" || e.key === "ArrowUp") this.move(0,-1);
-      else if(e.key === "s" || e.key === "ArrowDown") this.move(0,1);
-      else if(e.key === "a" || e.key === "ArrowLeft") this.move(-1,0);
-      else if(e.key === "d" || e.key === "ArrowRight") this.move(1,0);
-      else if(e.key === " ") this.attack();
-      else if(e.key === "Escape") exitDungeon(); // allow quick exit
-    };
-    window.addEventListener("keydown", this._keyHandler);
-  }
-
-  resizeCanvasForCSS(){
-    // If CSS scaled (on mobile), ensure drawing resolution matches element displayed size.
-    const el = this.canvas;
-    const rect = el.getBoundingClientRect();
-    // choose square fit based on rect
-    const displayW = Math.max(240, Math.floor(rect.width));
-    const displayH = Math.max(240, Math.floor(rect.height));
-    // set canvas pixel size for crisp rendering (use devicePixelRatio)
-    const dpr = window.devicePixelRatio || 1;
-    el.width = Math.round(displayW * dpr);
-    el.height = Math.round(displayH * dpr);
-    el.style.width = displayW + "px";
-    el.style.height = displayH + "px";
-    this.ctx.setTransform(dpr * (el.width / (this.size * this.ts) / (el.width/(displayW*dpr))), 0, 0, dpr * (el.height / (this.size * this.ts) / (el.height/(displayH*dpr))), 0, 0);
-    // simpler: we'll scale drawing relative to canvas pixel dims
-  }
-
-  generateRoom(preservePlayer=false){
-    // create simple procedural map
-    const m = [];
-    for(let y=0;y<this.size;y++){
-      m[y] = [];
-      for(let x=0;x<this.size;x++){
-        if(x===0 || y===0 || x===this.size-1 || y===this.size-1) m[y][x] = "#";
-        else m[y][x] = (Math.random() < 0.18) ? "#" : ".";
-      }
-    }
-    // clear around center
-    const cx = Math.floor(this.size/2), cy = Math.floor(this.size/2);
-    for(let dy=-2; dy<=2; dy++){
-      for(let dx=-2; dx<=2; dx++){
-        const sx = cx + dx, sy = cy + dy;
-        if(sx>0 && sy>0 && sx<this.size-1 && sy<this.size-1) m[sy][sx] = ".";
-      }
-    }
-    if(!preservePlayer || this.map.length === 0 || m[this.player.y][this.player.x] === "#"){
-      this.player.x = cx; this.player.y = cy;
-    }
-    // enemies spawn
-    const enemyCount = Math.max(2, 3 + Math.floor(this.level * 0.8));
-    const enemies = [];
-    let attempts = 0;
-    while(enemies.length < enemyCount && attempts < 800){
-      attempts++;
-      const ex = Math.floor(Math.random() * this.size);
-      const ey = Math.floor(Math.random() * this.size);
-      if(m[ey][ex] === "." && !(ex === this.player.x && ey === this.player.y)) enemies.push({x:ex,y:ey});
-    }
-    // items
-    const items = [];
-    // rare life
-    if(Math.random() < 0.08) {
-      let rx, ry, t=0;
-      do { rx=Math.floor(Math.random()*this.size); ry=Math.floor(Math.random()*this.size); t++; } while((m[ry][rx] === "#" || (rx===this.player.x && ry===this.player.y)) && t<300);
-      if(t<300) items.push({x:rx,y:ry,type:"life"});
-    }
-    // points items
-    for(let i=0;i< (Math.random()<0.65 ? 1 + Math.floor(Math.random()*2) : 0); i++){
-      let rx, ry, t=0;
-      do { rx=Math.floor(Math.random()*this.size); ry=Math.floor(Math.random()*this.size); t++; } while((m[ry][rx] === "#" || (rx===this.player.x && ry===this.player.y)) && t<300);
-      if(t<300) items.push({x:rx,y:ry,type:"points",amount:10 + Math.floor(Math.random()*41)});
-    }
-    // shield
-    if(Math.random() < 0.16){
-      let rx, ry, t=0;
-      do { rx=Math.floor(Math.random()*this.size); ry=Math.floor(Math.random()*this.size); t++; } while((m[ry][rx] === "#" || (rx===this.player.x && ry===this.player.y)) && t<300);
-      if(t<300) items.push({x:rx,y:ry,type:"shield",duration:7});
-    }
-    this.map = m;
-    this.enemies = enemies;
-    this.items = items;
-    this.updateHUD();
-    this.save();
-  }
-
-  isWalkable(x,y){ return x>=0 && y>=0 && x<this.size && y<this.size && this.map[y][x] === "."; }
-
-  draw(){
-    const canvas = this.canvas;
-    const ctx = this.ctx;
-    // draw scaled grid: we want each tile fit inside the canvas
-    const w = canvas.width, h = canvas.height;
-    const tilePx = Math.floor(Math.min(w, h) / this.size);
-    ctx.clearRect(0,0,w,h);
-
-    // background
-    ctx.fillStyle = "#000"; ctx.fillRect(0,0,w,h);
-
-    // draw tiles
-    for(let y=0;y<this.size;y++){
-      for(let x=0;x<this.size;x++){
-        const px = x * tilePx, py = y * tilePx;
-        if(this.map[y][x] === "#"){
-          ctx.fillStyle = "#444"; ctx.fillRect(px,py,tilePx,tilePx);
-        } else {
-          ctx.fillStyle = "#0b0b0b"; ctx.fillRect(px,py,tilePx,tilePx);
-        }
-      }
-    }
-
-    // draw items
-    for(const it of this.items){
-      const px = it.x * tilePx + Math.floor(tilePx*0.12);
-      const py = it.y * tilePx + Math.floor(tilePx*0.12);
-      const sz = Math.floor(tilePx * 0.76);
-      if(it.type === "life"){
-        ctx.fillStyle = "red";
-        ctx.beginPath(); ctx.arc(px + sz/2, py + sz/2, Math.max(4, Math.floor(sz*0.32)), 0, Math.PI*2); ctx.fill();
-      } else if(it.type === "points"){
-        ctx.fillStyle = "gold"; ctx.fillRect(px,py,sz,sz);
-      } else if(it.type === "shield"){
-        ctx.fillStyle = "deepskyblue"; ctx.beginPath(); ctx.arc(px + sz/2, py + sz/2, Math.max(4, Math.floor(sz*0.26)), 0, Math.PI*2); ctx.fill();
-      }
-    }
-
-    // enemies
-    for(const e of this.enemies){
-      const px = e.x * tilePx + Math.floor(tilePx*0.06);
-      const py = e.y * tilePx + Math.floor(tilePx*0.06);
-      const sz = Math.floor(tilePx*0.88);
-      ctx.fillStyle = "lime";
-      ctx.fillRect(px,py,sz,sz);
-    }
-
-    // player
-    const ppx = this.player.x * tilePx + Math.floor(tilePx*0.06);
-    const ppy = this.player.y * tilePx + Math.floor(tilePx*0.06);
-    const psz = Math.floor(tilePx*0.88);
-    ctx.fillStyle = this.playerShieldActive ? "cyan" : "#00ffff";
-    ctx.fillRect(ppx,ppy,psz,psz);
-
-    // small border
-    ctx.strokeStyle = "rgba(255,255,255,0.04)"; ctx.strokeRect(0,0,w,h);
-  }
-
-  updateHUD(){
-    document.getElementById("dLives").innerText = this.lives;
-    document.getElementById("dLevel").innerText = this.level;
-    document.getElementById("dScore").innerText = this.score;
-    document.getElementById("points").innerText = accounts[this.user].points ?? 0;
-  }
-
-  move(dx,dy){
-    if(!this.running) return;
-    const nx = this.player.x + dx;
-    const ny = this.player.y + dy;
-    if(nx < 0 || ny < 0 || nx >= this.size || ny >= this.size) return;
-    if(this.map[ny][nx] === "#") return;
-    this.player.x = nx; this.player.y = ny;
-
-    // pick up items
-    this.items = this.items.filter(it => {
-      if(it.x === nx && it.y === ny){
-        if(it.type === "life"){
-          this.lives++; this.score += 25; accounts[this.user].points = (accounts[this.user].points||0) + 5;
-        } else if(it.type === "points"){
-          const amt = it.amount || 10;
-          this.score += amt; accounts[this.user].points = (accounts[this.user].points||0) + amt;
-        } else if(it.type === "shield"){
-          this.playerShieldActive = true;
-          this.playerShieldUntil = Date.now() + ((it.duration || 6) * 1000);
-        }
-        this.updateHUD(); return false;
-      }
-      return true;
-    });
-
-    // check enemies at new position
-    for(const e of this.enemies){
-      if(e.x === nx && e.y === ny){
-        if(this.playerShieldActive){
-          // destroy enemy
-          this.enemies = this.enemies.filter(x => x !== e);
-          this.score += 10; accounts[this.user].points = (accounts[this.user].points||0) + 2;
-        } else {
-          this.lives--; this.updateHUD();
-          if(this.lives <= 0) { this.handleDeath(); return; }
-        }
-      }
-    }
-    this.save();
-  }
-
-  attack(){
-    // attack adjacent enemies (manhattan <= 1)
-    if(!this.running) return;
-    let killed = 0;
-    this.enemies = this.enemies.filter(e => {
-      const d = Math.abs(e.x - this.player.x) + Math.abs(e.y - this.player.y);
-      if(d <= 1){ killed++; this.score += 8; accounts[this.user].points = (accounts[this.user].points||0) + 2; return false; }
-      return true;
-    });
-    if(killed) this.updateHUD();
-  }
-
-  moveEnemies(){
-    const now = Date.now();
-    if(now - (this.lastEnemyMove || 0) < Math.max(120, 420 - this.level * 8)) return;
-    this.lastEnemyMove = now;
-    for(const e of this.enemies.slice()){
-      // sometimes random step
-      if(Math.random() < 0.12){
-        const dir = [[1,0],[-1,0],[0,1],[0,-1]][Math.floor(Math.random()*4)];
-        const nx = e.x + dir[0], ny = e.y + dir[1];
-        if(this.isWalkable(nx,ny) && !(nx === this.player.x && ny === this.player.y)) { e.x = nx; e.y = ny; }
-        if(e.x === this.player.x && e.y === this.player.y) this.enemyHitsPlayer(e);
-        continue;
-      }
-      // greedy chase
-      const dx = this.player.x - e.x, dy = this.player.y - e.y;
-      let stepX = 0, stepY = 0;
-      if(Math.abs(dx) >= Math.abs(dy)) stepX = Math.sign(dx);
-      else stepY = Math.sign(dy);
-
-      let moved = false;
-      if(stepX !== 0 && this.isWalkable(e.x + stepX, e.y)) { e.x += stepX; moved = true; }
-      if(!moved && stepY !== 0 && this.isWalkable(e.x, e.y + stepY)) { e.y += stepY; moved = true; }
-      if(!moved){
-        const dir = [[1,0],[-1,0],[0,1],[0,-1]][Math.floor(Math.random()*4)];
-        if(this.isWalkable(e.x + dir[0], e.y + dir[1])) { e.x += dir[0]; e.y += dir[1]; }
-      }
-      if(e.x === this.player.x && e.y === this.player.y) this.enemyHitsPlayer(e);
-    }
-  }
-
-  enemyHitsPlayer(e){
-    if(this.playerShieldActive){
-      // destroy enemy
-      this.enemies = this.enemies.filter(x => x !== e);
-      this.score += 10; accounts[this.user].points = (accounts[this.user].points||0) + 2;
-    } else {
-      this.lives--;
-      this.updateHUD();
-      if(this.lives <= 0) { this.handleDeath(); }
-    }
-  }
-
-  checkShields(){
-    if(this.playerShieldActive && Date.now() > (this.playerShieldUntil||0)) {
-      this.playerShieldActive = false;
-    }
-  }
-
-  checkProgression(){
-    if(this.enemies.length === 0){
-      // level cleared: reward points & generate new room
-      this.level++;
-      this.score += 30 + Math.floor(Math.random()*30);
-      accounts[this.user].points = (accounts[this.user].points||0) + 15 + Math.floor(Math.random()*10);
-      this.generateRoom(true);
-    }
-  }
-
-  handleDeath(){
-    // stop movement temporarily
-    this.running = false;
-    this.save();
-    const acc = accounts[this.user];
-    // if have enough points offer continue
-    if(acc.points >= DUNGEON.continueCost){
-      const cont = confirm(`You died. Spend ${DUNGEON.continueCost} points to continue and keep progress?`);
-      if(cont){
-        acc.points -= DUNGEON.continueCost;
-        this.lives = 3; this.running = true;
-        this.updateHUD(); saveData();
-        this.loop(); // restart loop
-        return;
-      }
-    }
-    // offer expensive replay reset
-    if(acc.points >= DUNGEON.replayCost){
-      const replay = confirm(`You died. Spend ${DUNGEON.replayCost} points to replay from level 1 (resets dungeon progress)?`);
-      if(replay){
-        acc.points -= DUNGEON.replayCost;
-        accounts[this.user].dungeon = null;
-        saveData();
-        alert("Dungeon reset. Re-enter to start fresh.");
-        exitDungeon();
-        return;
-      }
-    }
-    // otherwise lose dungeon progress
-    alert("You died and didn't continue. Dungeon progress lost.");
-    accounts[this.user].dungeon = null;
-    saveData();
-    exitDungeon();
-  }
-
-  save(){
-    // write into accounts object
-    accounts[this.user] = accounts[this.user] || {};
-    accounts[this.user].dungeon = {
-      lives: this.lives,
-      level: this.level,
-      score: this.score,
-      player: this.player,
-      enemies: this.enemies,
-      items: this.items,
-      map: this.map,
-      lastSaved: Date.now()
-    };
-    saveData();
-  }
-
-  loop(){
-    if(!this.running) return;
-    // enemy movement
-    this.moveEnemies();
-    // update shields
-    this.checkShields();
-    // spawn tiny items randomly
-    if(Math.random() < 0.007){
-      let rx, ry, t=0;
-      do { rx=Math.floor(Math.random()*this.size); ry=Math.floor(Math.random()*this.size); t++; } while((this.map[ry][rx]==="#" || (rx===this.player.x && ry===this.player.y)) && t<300);
-      if(t<300) this.items.push({x:rx,y:ry,type:"points",amount:5 + Math.floor(Math.random()*6)});
-    }
-    // draw & progression
-    this.draw();
-    this.checkProgression();
-    this.updateHUD();
-    this.save();
-    // schedule next frame
-    if(this.running) requestAnimationFrame(()=>this.loop());
-  }
-}
-
-/* ---------- external helpers for mobile buttons ---------- */
-function movePlayer(dx,dy){ if(dungeonGame) dungeonGame.move(dx,dy); }
-function attack(){ if(dungeonGame) dungeonGame.attack(); }
-function toggleFullscreen(){
-  const el = document.getElementById("dungeonCanvas");
-  if(!document.fullscreenElement){
-    if(el.requestFullscreen) el.requestFullscreen();
-    else if(el.webkitRequestFullscreen) el.webkitRequestFullscreen();
-  } else {
-    if(document.exitFullscreen) document.exitFullscreen();
-    else if(document.webkitExitFullscreen) document.webkitExitFullscreen();
-  }
-}
-
-/* ---------- ensure a graceful exit if Play Dungeon previously hung ---------- */
-window.addEventListener("unload", ()=>{ if(currentUser && accounts[currentUser]) saveData(); });
-
-/* initialize UI on load if account exists in localStorage */
-(function init(){
-  // leave accounts as-is; UI will show login until sign-in
-  // but if a single account exists, prefill username (optional)
-  const accKeys = Object.keys(accounts);
-  if(accKeys.length === 1){
-    document.getElementById("username").value = accKeys[0];
-  }
-})();
 </script>
 </body>
 </html>
