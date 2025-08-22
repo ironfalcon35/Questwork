@@ -3,41 +3,103 @@
 <head>
   <meta charset="UTF-8">
   <title>Questwork</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      background: #f4f4f4;
-      transition: background 0.5s, color 0.5s;
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+      color: #333;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
-    .hidden { display: none; }
-    .login-box, .game-box {
-      margin-top: 50px;
-      padding: 20px;
-      border: 2px solid #333;
-      border-radius: 10px;
+
+    .card {
       background: white;
-      width: 300px;
-      margin-left: auto;
-      margin-right: auto;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+      animation: fadeIn 0.5s ease-in;
     }
-    button { margin: 5px; padding: 10px; }
-    #inventory { margin-top: 20px; text-align: left; }
-    .theme-dog { background: url('https://i.imgur.com/pXlUZ04.png'); color: brown; }
+
+    h2 { margin-top: 0; }
+    input, button {
+      width: 90%;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 8px;
+      border: 1px solid #aaa;
+      font-size: 1rem;
+    }
+
+    button {
+      background: #2575fc;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover { background: #6a11cb; }
+
+    .hidden { display: none; }
+
+    #gameBox {
+      width: 95%;
+      max-width: 600px;
+      margin: auto;
+    }
+
+    #inventory {
+      text-align: left;
+      padding: 0;
+      list-style: none;
+    }
+    #inventory li {
+      background: #f4f4f4;
+      margin: 4px 0;
+      padding: 6px;
+      border-radius: 6px;
+    }
+
+    /* Themes */
+    .theme-dog { background: url('https://i.imgur.com/pXlUZ04.png') center/cover; color: brown; }
     .theme-pirate { background: black; color: gold; }
     .theme-neon { background: #0f0f0f; color: lime; }
     .theme-spooky { background: purple; color: orange; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
   </style>
 </head>
 <body>
-  <div class="login-box" id="loginBox">
-    <h2>Questwork Login</h2>
-    <input type="text" id="username" placeholder="Enter username"><br><br>
-    <input type="password" id="password" placeholder="Enter password"><br><br>
-    <button onclick="login()">Login</button>
+  <!-- Sign Up -->
+  <div class="card" id="signupBox">
+    <h2>Questwork Sign Up</h2>
+    <input type="text" id="newUsername" placeholder="Choose a username">
+    <input type="password" id="newPassword" placeholder="Choose a password">
+    <button onclick="signup()">Sign Up</button>
+    <p>Already have an account? <a href="#" onclick="switchToLogin()">Sign In</a></p>
   </div>
 
-  <div class="game-box hidden" id="gameBox">
+  <!-- Login -->
+  <div class="card hidden" id="loginBox">
+    <h2>Questwork Login</h2>
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="login()">Sign In</button>
+    <p>Forgot details? <a href="#" onclick="resetWithTeacher()">Teacher Reset</a></p>
+    <p>New here? <a href="#" onclick="switchToSignup()">Sign Up</a></p>
+  </div>
+
+  <!-- Game -->
+  <div class="card hidden" id="gameBox">
     <h2>Welcome, <span id="playerName"></span>!</h2>
     <p>Points: <span id="points">0</span></p>
     <button onclick="spin('bronze')">Spin Bronze Wheel (5 pts)</button>
@@ -59,28 +121,41 @@
     let currentUser = null;
     const TEACHER_SECRET = "7545"; 
 
-    function login() {
-      const user = document.getElementById("username").value;
-      const pass = document.getElementById("password").value;
-      if (!user || !pass) { alert("Enter username & password"); return; }
-
-      if (!accounts[user]) {
-        accounts[user] = { password: pass, points: 0, inventory: [], themes: [] };
-      } else if (accounts[user].password !== pass) {
-        alert("Wrong password!");
-        return;
-      }
-
-      currentUser = user;
+    function saveData() {
       localStorage.setItem("accounts", JSON.stringify(accounts));
-      document.getElementById("playerName").innerText = user;
+    }
+
+    function signup() {
+      let user = document.getElementById("newUsername").value;
+      let pass = document.getElementById("newPassword").value;
+      if (!user || !pass) { alert("Fill in all fields"); return; }
+      if (accounts[user]) { alert("Username already exists!"); return; }
+      accounts[user] = { password: pass, points: 0, inventory: [], themes: [] };
+      saveData();
+      alert("Account created! You can now sign in.");
+      switchToLogin();
+    }
+
+    function login() {
+      let user = document.getElementById("username").value;
+      let pass = document.getElementById("password").value;
+      if (!user || !pass) { alert("Enter username and password"); return; }
+      if (!accounts[user]) { alert("No account found. Sign up first."); return; }
+      if (accounts[user].password !== pass) { alert("Wrong password"); return; }
+      currentUser = user;
+      startGame();
+    }
+
+    function startGame() {
+      document.getElementById("playerName").innerText = currentUser;
       updateUI();
+      document.getElementById("signupBox").classList.add("hidden");
       document.getElementById("loginBox").classList.add("hidden");
       document.getElementById("gameBox").classList.remove("hidden");
     }
 
     function updateUI() {
-      const acc = accounts[currentUser];
+      let acc = accounts[currentUser];
       document.getElementById("points").innerText = acc.points;
       let inv = document.getElementById("inventory");
       inv.innerHTML = "";
@@ -90,11 +165,11 @@
         inv.appendChild(li);
       });
       acc.themes.forEach(t => { document.body.classList.add("theme-" + t); });
-      localStorage.setItem("accounts", JSON.stringify(accounts));
+      saveData();
     }
 
     function spin(type) {
-      const acc = accounts[currentUser];
+      let acc = accounts[currentUser];
       let cost = { bronze: 5, silver: 15, gold: 50 }[type];
       if (acc.points < cost) { alert("Not enough points!"); return; }
 
@@ -118,12 +193,9 @@
         silver: ["Pirate Theme", "Cool Hat", "1 Bonus Point", "Neon Theme"],
         gold: ["Spooky Theme", "Golden Trophy", "VIP Badge", "50 Bonus Points"]
       };
-      let list = prizes[type];
-      let prize = list[Math.floor(Math.random() * list.length)];
-
+      let prize = prizes[type][Math.floor(Math.random() * prizes[type].length)];
       if (prize === "1 Bonus Point") accounts[currentUser].points += 1;
       if (prize === "50 Bonus Points") accounts[currentUser].points += 50;
-
       return prize;
     }
 
@@ -137,6 +209,26 @@
       } else {
         alert("Wrong teacher code!");
       }
+    }
+
+    function resetWithTeacher() {
+      let code = prompt("Enter teacher code:");
+      if (code !== TEACHER_SECRET) { alert("Wrong code"); return; }
+      let user = prompt("Enter username to reset:");
+      if (!accounts[user]) { alert("No such account"); return; }
+      let newPass = prompt("Enter new password:");
+      accounts[user].password = newPass;
+      saveData();
+      alert("Password reset for " + user);
+    }
+
+    function switchToLogin() {
+      document.getElementById("signupBox").classList.add("hidden");
+      document.getElementById("loginBox").classList.remove("hidden");
+    }
+    function switchToSignup() {
+      document.getElementById("loginBox").classList.add("hidden");
+      document.getElementById("signupBox").classList.remove("hidden");
     }
   </script>
 </body>
