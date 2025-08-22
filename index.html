@@ -1,328 +1,447 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
+<meta charset="UTF-8" />
 <title>Questwork</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <style>
-  body {
-    margin:0;
-    font-family:'Segoe UI', sans-serif;
-    background: linear-gradient(135deg,#1f1c2c 0%,#928DAB 100%);
-    color:#fff;
-    min-height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    flex-direction:column;
-    text-align:center;
-    transition:background 0.5s ease;
+  :root{
+    --card-bg: rgba(0,0,0,0.6);
+    --text:#fff;
+    --accent:#ffdd57;
+    --btnA:#ff6a00; --btnB:#ee0979;
   }
-  .card {
-    background: rgba(0,0,0,0.6);
-    padding:20px;
-    border-radius:16px;
-    box-shadow:0 8px 20px rgba(0,0,0,0.4);
-    max-width:550px;
-    width:95%;
-    margin:10px;
-    animation:fadeIn 0.5s ease-in;
+  body{
+    margin:0; font-family:'Segoe UI', system-ui, -apple-system, sans-serif;
+    background:linear-gradient(135deg,#1f1c2c 0%,#928DAB 100%);
+    color:var(--text);
+    min-height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center;
+    transition:background 0.5s ease, color .3s ease;
   }
-  h2,h3{margin-top:0;color:#ffdd57;text-shadow:1px 1px 4px #000;}
-  input,button,select{
-    width:90%;padding:12px;margin:8px 0;border-radius:8px;border:none;font-size:1rem;outline:none;
-  }
-  input{background:#f4f4f4;}
-  button{
-    background: linear-gradient(135deg,#ff6a00,#ee0979);
-    color:white;font-weight:bold;cursor:pointer;transition:transform 0.2s,opacity 0.3s;
-  }
-  button:hover{transform:scale(1.05);opacity:0.9;}
-  .hidden{display:none;}
-  #inventory,#collectibles{list-style:none;padding:0;margin:0;max-height:150px;overflow-y:auto;}
-  #inventory li,#collectibles li{
-    background: rgba(255,255,255,0.1);
-    margin:5px 0;
-    padding:8px;
-    border-radius:6px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    cursor:pointer;
-  }
-  .delete-btn{
-    background: crimson;color:white;border:none;border-radius:6px;padding:3px 8px;cursor:pointer;font-size:0.8rem;
-  }
-  #wheelBox{
-    margin:20px auto;
-    width:250px;
-    height:60px;
-    overflow:hidden;
-    border:3px solid #fff;
-    border-radius:8px;
-    background: rgba(0,0,0,0.8);
-    display:flex;
-    justify-content:center;
-    align-items:center;
-  }
-  .prizeText{
-    font-size:1.4rem;font-weight:bold;
-    transition:transform 0.15s ease;
-  }
-  @keyframes fadeIn{
-    from{opacity:0;transform:translateY(10px);}
-    to{opacity:1;transform:translateY(0);}
-  }
-  @keyframes spinCollectible {
-    0% {transform: rotate(0deg) scale(0.5); opacity:0;}
-    50% {transform: rotate(360deg) scale(1.2); opacity:1;}
-    100% {transform: rotate(720deg) scale(1); opacity:0;}
-  }
-  .collectible-spin {
-    position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
-    font-size:3rem;
-    animation:spinCollectible 2s ease;
-    pointer-events:none;
-  }
-  /* Themes placeholders (easy to customize later) */
-  .theme-blackness {background:black; color:white;}
-  .theme-checker {background:repeating-linear-gradient(45deg, black 0 20px, white 20px 40px); color:black;}
-  .theme-bw {background:linear-gradient(90deg, black 50%, white 50%); color:white;}
-  .theme-neon {background:linear-gradient(135deg,#0f0f0f,#00ffcc);} 
-  .theme-space {background:radial-gradient(circle,#000 0%,#111 40%,#222 100%);} 
-  .theme-time {background:linear-gradient(135deg,#222,#555);} 
-  .theme-forest {background:linear-gradient(135deg,#013220,#228B22);} 
-  .theme-desert {background:linear-gradient(135deg,#EDC9Af,#C2B280);} 
-  .theme-cyber {background:linear-gradient(135deg,#0ff,#111);} 
-  .theme-music {background:linear-gradient(135deg,#222,#ff0080);} 
-  .theme-ice {background:linear-gradient(135deg,#00f,#0ff);} 
-  .theme-underwater {background:linear-gradient(135deg,#004,#00f);} 
-  .theme-dog {background:url('https://i.imgur.com/9i5G79G.jpg') center/cover;} 
-  .theme-undertale {background:linear-gradient(135deg,#000,#fff);} 
-  .theme-castle {background:linear-gradient(135deg,#666,#999);} 
-  .theme-amazingdigital {background:linear-gradient(135deg,#111,#ff0);} 
-  .theme-pirate {background:url('https://i.imgur.com/m5mG93q.jpeg') center/cover;} 
+  .card{ background:var(--card-bg); padding:20px; border-radius:16px; box-shadow:0 8px 20px rgba(0,0,0,.4); max-width:760px; width:95%; margin:10px; animation:fadeIn .5s ease-in; }
+  h2,h3{ margin-top:0; color:var(--accent); text-shadow:1px 1px 4px #000; }
+  input,button,select{ width:90%; padding:12px; margin:8px 0; border-radius:8px; border:none; font-size:1rem; outline:none; }
+  input{ background:#f4f4f4; }
+  button{ background:linear-gradient(135deg,var(--btnA),var(--btnB)); color:#fff; font-weight:bold; cursor:pointer; transition:transform .2s, opacity .3s; }
+  button:hover{ transform:scale(1.05); opacity:.9; }
+  .hidden{ display:none; }
+
+  #wheelBox{ margin:20px auto; width:260px; height:64px; overflow:hidden; border:3px solid #fff; border-radius:8px; background:rgba(0,0,0,.8); display:flex; justify-content:center; align-items:center; }
+  .prizeText{ font-size:1.4rem; font-weight:bold; transition:transform .15s ease; }
+
+  #inventory,#collectibles{ list-style:none; padding:0; margin:0; max-height:180px; overflow-y:auto; }
+  #inventory li,#collectibles li{ background:rgba(255,255,255,.1); margin:5px 0; padding:8px; border-radius:6px; display:flex; justify-content:space-between; align-items:center; cursor:pointer; gap:8px; }
+  .delete-btn{ background:crimson; color:#fff; border:none; border-radius:6px; padding:3px 8px; cursor:pointer; font-size:.8rem; }
+
+  /* Theme classes (easy to customize) */
+  .theme-blackness{ background:#000; color:#fff; }
+  .theme-checker{ background:repeating-linear-gradient(45deg,#000 0,#000 25px,#fff 25px,#fff 50px); color:#000; }
+  .theme-bw{ background:linear-gradient(90deg,#000,#fff); color:#fff; }
+  .theme-neon{ background:linear-gradient(135deg,#0f0f0f,#00ffcc); }
+  .theme-space{ background:#000 url('https://i.imgur.com/2gB5w3G.jpeg') center/cover no-repeat; }
+  .theme-time{ background:linear-gradient(135deg,#001f3f,#0074D9); }
+  .theme-forest{ background:linear-gradient(135deg,#228B22,#006400); }
+  .theme-desert{ background:linear-gradient(135deg,#EDC9Af,#C2B280); color:#111; }
+  .theme-cyber{ background:linear-gradient(135deg,#111,#0ff); }
+  .theme-music{ background:#111 url('https://i.imgur.com/O6S7p7T.jpeg') center/cover no-repeat; }
+  .theme-ice{ background:linear-gradient(135deg,#E0FFFF,#AFEEEE); color:#061923; }
+  .theme-underwater{ background:linear-gradient(135deg,#1E90FF,#00CED1); }
+  .theme-dog{ background:url('https://i.imgur.com/9i5G79G.jpg') center/cover no-repeat; }
+  .theme-undertale{ background:#000; color:#fff; font-family:'Courier New', monospace; }
+  .theme-castle{ background:url('https://i.imgur.com/qFXJm8i.jpeg') center/cover no-repeat; }
+  .theme-amazing{ background:linear-gradient(135deg,#ff00ff,#00ffff); }
+  .theme-pirate{ background:url('https://i.imgur.com/m5mG93q.jpeg') center/cover no-repeat; }
+
+  @keyframes fadeIn{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
+  @keyframes spinAnim{ from{ transform:rotate(0deg) scale(.5); opacity:0;} to{ transform:rotate(720deg) scale(1); opacity:1;} }
+  .collectible-spin{ position:fixed; inset:auto 0 0 0; top:50%; left:50%; transform:translate(-50%,-50%); animation:spinAnim 1s ease forwards; z-index:9999; display:flex; align-items:center; justify-content:center; width:220px; height:220px; background:rgba(0,0,0,.6); border:3px solid #fff; border-radius:16px; box-shadow:0 12px 40px rgba(0,0,0,.6); }
+  .collectible-spin img{ max-width:180px; max-height:180px; }
+  .collectible-spin .label{ position:absolute; bottom:-36px; left:50%; transform:translateX(-50%); font-weight:700; background:rgba(0,0,0,.7); padding:6px 10px; border-radius:10px; border:1px solid #fff; }
+
+  #teacherLoginBtn{ width:auto; padding:6px 12px; font-size:.9rem; margin-top:15px; background:linear-gradient(135deg,#555,#999); }
+  #teacherPanel{ margin-top:20px; }
+  #testOutput{ text-align:left; background:rgba(0,0,0,.4); padding:10px; border-radius:10px; white-space:pre-wrap; max-height:200px; overflow:auto; }
 </style>
 </head>
 <body>
-<div class="card" id="loginCard">
-<h2>Questwork Login</h2>
-<input type="text" id="username" placeholder="Username">
-<input type="password" id="password" placeholder="Password">
-<button onclick="signup()">Sign Up</button>
-<button onclick="login()">Sign In</button>
-</div>
+  <div class="card" id="loginCard">
+    <h2>Questwork Login</h2>
+    <input type="text" id="username" placeholder="Username" />
+    <input type="password" id="password" placeholder="Password" />
+    <button onclick="signup()">Sign Up</button>
+    <button onclick="login()">Sign In</button>
+  </div>
 
-<div class="card hidden" id="gameBox">
-<h2>Welcome, <span id="playerName"></span>!</h2>
-<p>⭐ Points: <span id="points">0</span></p>
+  <div class="card hidden" id="gameBox">
+    <h2>Welcome, <span id="playerName"></span>!</h2>
+    <p>⭐ Points: <span id="points">0</span></p>
 
-<div id="wheelButtons">
-<button onclick="spin()">Spin Wheel (50 pts)</button>
-</div>
+    <div id="wheelButtons">
+      <button onclick="spin()">Spin Wheel (50 pts)</button>
+    </div>
 
-<div id="wheelBox"><div class="prizeText" id="prizeDisplay">?</div></div>
-<p id="result"></p>
+    <div id="wheelBox"><div class="prizeText" id="prizeDisplay">?</div></div>
+    <p id="result"></p>
 
-<h3>Inventory (Physical Prizes)</h3>
-<ul id="inventory"></ul>
+    <h3>Inventory</h3>
+    <ul id="inventory"></ul>
 
-<h3>Collectibles</h3>
-<ul id="collectibles"></ul>
+    <h3>Collectibles</h3>
+    <ul id="collectibles"></ul>
 
-<h3>Theme Selector</h3>
-<select id="themeSelect" onchange="applyTheme(this.value)">
-<option value="">--Choose Theme--</option>
-</select>
-</div>
+    <h3>Theme Selector</h3>
+    <select id="themeSelect" onchange="applyTheme(this.value)">
+      <option value="">--Choose Theme--</option>
+    </select>
+
+    <!-- Teacher toggle -->
+    <button id="teacherLoginBtn" onclick="showTeacherLogin()">Teacher</button>
+    <div id="teacherPanel" class="hidden">
+      <h3>Teacher Controls</h3>
+      <input type="number" id="pointsToAdd" placeholder="Points to add" />
+      <button onclick="addPoints()">Add Points</button>
+      <button onclick="logoutTeacher()">Log Out</button>
+      <div style="margin-top:10px">
+        <button onclick="runTests()">Run Self-Tests</button>
+      </div>
+      <div id="testOutput" class="hidden"></div>
+    </div>
+  </div>
 
 <script>
-const TEACHER_SECRET="7545";
+'use strict';
+const TEACHER_SECRET = '7545';
 
-// ===================== Prize Pool =====================
-const wheelPrizes=[
-  // Physical Prizes (stackable, no refund)
-  {name:"Lollipop",weight:40,type:"physical"},
-  {name:"Sticker",weight:30,type:"physical"},
-  {name:"Do 10 Pushups Lol",weight:10,type:"physical"},
-  {name:"Do a thingy with Ezra",weight:5,type:"physical"},
+// === Theme catalog (display label + CSS class key) ===
+const themeCatalog = {
+  blackness: { label: 'Blackness Theme' },
+  checker: { label: 'Checker Theme' },
+  bw: { label: 'Black and White Theme' },
+  neon: { label: 'Neon Theme' },
+  space: { label: 'Space Theme' },
+  time: { label: 'Time Theme' },
+  forest: { label: 'Forest Theme' },
+  desert: { label: 'Desert Theme' },
+  cyber: { label: 'Cyber Theme' },
+  music: { label: 'Music Theme' },
+  ice: { label: 'Ice Theme' },
+  underwater: { label: 'Underwater Theme' },
+  dog: { label: 'Dog Theme' },
+  undertale: { label: 'Undertale Theme' },
+  castle: { label: 'Castle Theme' },
+  amazing: { label: 'Amazing Digital Theme' },
+  pirate: { label: 'Pirate Theme' },
+};
 
-  // Themes (refund 25)
-  {name:"Blackness Theme",weight:100,type:"theme"},
-  {name:"Checker Theme",weight:100,type:"theme"},
-  {name:"Black and White Theme",weight:100,type:"theme",key:"bw"},
-  {name:"Neon Theme",weight:90,type:"theme"},
-  {name:"Space Theme",weight:80,type:"theme"},
-  {name:"Time Theme",weight:70,type:"theme"},
-  {name:"Forest Theme",weight:60,type:"theme"},
-  {name:"Desert Theme",weight:50,type:"theme"},
-  {name:"Cyber Theme",weight:40,type:"theme"},
-  {name:"Music Theme",weight:30,type:"theme"},
-  {name:"Ice Theme",weight:15,type:"theme"},
-  {name:"Underwater Theme",weight:15,type:"theme"},
-  {name:"Dog Theme",weight:5,type:"theme"},
-  {name:"Undertale Theme",weight:4,type:"theme"},
-  {name:"Castle Theme",weight:3,type:"theme"},
-  {name:"Amazing Digital Theme",weight:2,type:"theme"},
-  {name:"Pirate Theme",weight:1,type:"theme"},
+// === Collectible image lookup (fallbacks used if not found) ===
+const collectibleImages = {
+  'Cheese Collectible': 'https://i.imgur.com/MvJ3M6I.png',   // placeholder cheese icon
+  'Nyan Cat Collectible': 'https://i.imgur.com/VwV9bpl.png', // placeholder nyan
+  'Epic Sax Collectible': 'https://i.imgur.com/1v2fQkC.png', // placeholder sax
+  'Doge Crown Collectible': 'https://i.imgur.com/0b4F7nC.png',
+  'Pepe Collectible': 'https://i.imgur.com/o8sJc3T.png',
+  'Noob Collectible': 'https://i.imgur.com/3wA7OeZ.png',
+  'Pokeball': 'https://i.imgur.com/Vk7mR5t.png'
+};
 
-  // Collectibles (refund 25, except Pokémon which are unique)
-  {name:"Pirate King Collectible",weight:1,type:"collectible"},
-  {name:"Black Knight Collectible",weight:2,type:"collectible"},
-  {name:"Doge Crown Collectible",weight:4,type:"collectible"},
-  {name:"Pepe Collectible",weight:8,type:"collectible"},
-  {name:"Sussy Imposter Collectible",weight:10,type:"collectible"},
-  {name:"Nyan Cat Collectible",weight:15,type:"collectible"},
-  {name:"Bad Time Collectible",weight:20,type:"collectible"},
-  {name:"Epic Sax Collectible",weight:25,type:"collectible"},
-  {name:"Noob Collectible",weight:30,type:"collectible"},
-  {name:"Shopping Cart Collectible",weight:35,type:"collectible"},
-  {name:"Film Theory Collectible",weight:20,type:"collectible"},
-  {name:"Game Theory Collectible",weight:15,type:"collectible"},
-  {name:"Food Theory Collectible",weight:15,type:"collectible"},
-  {name:"Style Theory Collectible",weight:15,type:"collectible"},
-  {name:"Cheese Collectible",weight:10,type:"collectible"},
-  {name:"EVERY GEN 1 POKEMON COLLECTIBLE",weight:5,type:"pokemon"},
-
-  // Points
-  {name:"50 Points",weight:10,type:"points",amount:50},
-  {name:"100 Points",weight:5,type:"points",amount:100}
+// === Gen 1 Pokémon list (151) ===
+const POKEMON_GEN1 = [
+  'Bulbasaur','Ivysaur','Venusaur','Charmander','Charmeleon','Charizard','Squirtle','Wartortle','Blastoise','Caterpie','Metapod','Butterfree','Weedle','Kakuna','Beedrill','Pidgey','Pidgeotto','Pidgeot','Rattata','Raticate','Spearow','Fearow','Ekans','Arbok','Pikachu','Raichu','Sandshrew','Sandslash','Nidoran♀','Nidorina','Nidoqueen','Nidoran♂','Nidorino','Nidoking','Clefairy','Clefable','Vulpix','Ninetales','Jigglypuff','Wigglytuff','Zubat','Golbat','Oddish','Gloom','Vileplume','Paras','Parasect','Venonat','Venomoth','Diglett','Dugtrio','Meowth','Persian','Psyduck','Golduck','Mankey','Primeape','Growlithe','Arcanine','Poliwag','Poliwhirl','Poliwrath','Abra','Kadabra','Alakazam','Machop','Machoke','Machamp','Bellsprout','Weepinbell','Victreebel','Tentacool','Tentacruel','Geodude','Graveler','Golem','Ponyta','Rapidash','Slowpoke','Slowbro','Magnemite','Magneton','Farfetch’d','Doduo','Dodrio','Seel','Dewgong','Grimer','Muk','Shellder','Cloyster','Gastly','Haunter','Gengar','Onix','Drowzee','Hypno','Krabby','Kingler','Voltorb','Electrode','Exeggcute','Exeggutor','Cubone','Marowak','Hitmonlee','Hitmonchan','Lickitung','Koffing','Weezing','Rhyhorn','Rhydon','Chansey','Tangela','Kangaskhan','Horsea','Seadra','Goldeen','Seaking','Staryu','Starmie','Mr. Mime','Scyther','Jynx','Electabuzz','Magmar','Pinsir','Tauros','Magikarp','Gyarados','Lapras','Ditto','Eevee','Vaporeon','Jolteon','Flareon','Porygon','Omanyte','Omastar','Kabuto','Kabutops','Aerodactyl','Snorlax','Articuno','Zapdos','Moltres','Dratini','Dragonair','Dragonite','Mewtwo','Mew'
 ];
 
-// ===================== Accounts =====================
-let accounts=JSON.parse(localStorage.getItem("accounts"))||{};
-let currentUser=null;
+// === Prize pool base ===
+const wheelPrizesBase = [
+  // Physical prizes (stackable, no refund)
+  { name:'Lollipop', weight:40, type:'physical' },
+  { name:'Sticker', weight:30, type:'physical' },
+  { name:'Do 10 Pushups Lol', weight:10, type:'physical' },
+  { name:'Do a thingy with Ezra', weight:5, type:'physical' },
 
-function saveData(){localStorage.setItem("accounts",JSON.stringify(accounts));}
+  // Themes (refund 25 on duplicate)
+  { name:'Blackness Theme', weight:100, type:'theme', themeKey:'blackness' },
+  { name:'Checker Theme', weight:100, type:'theme', themeKey:'checker' },
+  { name:'Black and White Theme', weight:100, type:'theme', themeKey:'bw' },
+  { name:'Neon Theme', weight:90, type:'theme', themeKey:'neon' },
+  { name:'Space Theme', weight:80, type:'theme', themeKey:'space' },
+  { name:'Time Theme', weight:70, type:'theme', themeKey:'time' },
+  { name:'Forest Theme', weight:60, type:'theme', themeKey:'forest' },
+  { name:'Desert Theme', weight:50, type:'theme', themeKey:'desert' },
+  { name:'Cyber Theme', weight:40, type:'theme', themeKey:'cyber' },
+  { name:'Music Theme', weight:30, type:'theme', themeKey:'music' },
+  { name:'Ice Theme', weight:15, type:'theme', themeKey:'ice' },
+  { name:'Underwater Theme', weight:15, type:'theme', themeKey:'underwater' },
+  { name:'Dog Theme', weight:5, type:'theme', themeKey:'dog' },
+  { name:'Undertale Theme', weight:4, type:'theme', themeKey:'undertale' },
+  { name:'Castle Theme', weight:3, type:'theme', themeKey:'castle' },
+  { name:'Amazing Digital Theme', weight:2, type:'theme', themeKey:'amazing' },
+  { name:'Pirate Theme', weight:1, type:'theme', themeKey:'pirate' },
 
+  // Non-Pokémon Collectibles (refund 25 on duplicate)
+  { name:'Pirate King Collectible', weight:1, type:'collectible' },
+  { name:'Black Knight Collectible', weight:2, type:'collectible' },
+  { name:'Doge Crown Collectible', weight:4, type:'collectible' },
+  { name:'Pepe Collectible', weight:8, type:'collectible' },
+  { name:'Sussy Imposter Collectible', weight:10, type:'collectible' },
+  { name:'Nyan Cat Collectible', weight:15, type:'collectible' },
+  { name:'Bad Time Collectible', weight:20, type:'collectible' },
+  { name:'Epic Sax Collectible', weight:25, type:'collectible' },
+  { name:'Noob Collectible', weight:30, type:'collectible' },
+  { name:'Shopping Cart Collectible', weight:35, type:'collectible' },
+  { name:'Film Theory Collectible', weight:20, type:'collectible' },
+  { name:'Game Theory Collectible', weight:15, type:'collectible' },
+  { name:'Food Theory Collectible', weight:15, type:'collectible' },
+  { name:'Style Theory Collectible', weight:15, type:'collectible' },
+  { name:'Cheese Collectible', weight:10, type:'collectible' },
+
+  // Points
+  { name:'50 Points', weight:10, type:'points', amount:50 },
+  { name:'100 Points', weight:5, type:'points', amount:100 },
+];
+
+// Add all Gen 1 Pokémon (each weight 5)
+const wheelPrizes = wheelPrizesBase.concat(
+  POKEMON_GEN1.map(p => ({ name:p, weight:5, type:'pokemon' }))
+);
+
+// === Storage ===
+let accounts = JSON.parse(localStorage.getItem('accounts')) || {};
+let currentUser = null;
+let teacherMode = false;
+
+function saveData(){ localStorage.setItem('accounts', JSON.stringify(accounts)); }
+
+// === Auth ===
 function signup(){
-  let u=document.getElementById("username").value;
-  let p=document.getElementById("password").value;
-  if(!u||!p)return alert("Enter username and password.");
-  if(accounts[u])return alert("Account exists!");
-  accounts[u]={password:p,points:0,inventory:[],themes:[],selectedTheme:"",collectibles:[]};
-  saveData();currentUser=u;startGame();
+  const u = document.getElementById('username').value.trim();
+  const p = document.getElementById('password').value;
+  if(!u || !p) return alert('Enter username and password.');
+  if(accounts[u]) return alert('Account exists!');
+  accounts[u] = { password:p, points:0, inventory:[], themes:[], selectedTheme:'', collectibles:[] };
+  saveData(); currentUser = u; startGame();
 }
-
 function login(){
-  let u=document.getElementById("username").value;
-  let p=document.getElementById("password").value;
-  if(!accounts[u])return alert("No account. Sign up first.");
-  if(accounts[u].password!==p)return alert("Wrong password.");
-  currentUser=u;startGame();
+  const u = document.getElementById('username').value.trim();
+  const p = document.getElementById('password').value;
+  if(!accounts[u]) return alert('No account. Sign up first.');
+  if(accounts[u].password !== p) return alert('Wrong password.');
+  currentUser = u; startGame();
 }
 
 function startGame(){
-  document.getElementById("playerName").innerText=currentUser;
+  document.getElementById('playerName').innerText = currentUser;
+  document.getElementById('loginCard').classList.add('hidden');
+  document.getElementById('gameBox').classList.remove('hidden');
   updateUI();
-  document.getElementById("loginCard").classList.add("hidden");
-  document.getElementById("gameBox").classList.remove("hidden");
 }
 
-// ===================== Wheel =====================
+// === Utils ===
 function weightedRandom(items){
-  let total=items.reduce((sum,i)=>sum+i.weight,0);
-  let r=Math.random()*total;
-  for(let i of items){if(r<i.weight)return i;r-=i.weight;}
+  if(!items || !items.length) return null;
+  const total = items.reduce((s,i)=>s+i.weight,0);
+  let r = Math.random()*total;
+  for(const i of items){ if(r < i.weight) return i; r -= i.weight; }
+  return items[items.length-1];
+}
+
+function getAvailablePrizesFor(acc){
+  return wheelPrizes.filter(p => {
+    if(p.type === 'pokemon' && acc.collectibles.includes(p.name)) return false; // exclude owned Pokémon
+    return true;
+  });
+}
+function getAvailablePrizes(){
+  return getAvailablePrizesFor(accounts[currentUser]);
+}
+
+// Pure prize application (for tests). Returns { nextAcc, message }
+function applyPrizePure(acc, prize){
+  const next = JSON.parse(JSON.stringify(acc));
+  let msg = '';
+  if(!prize) return { nextAcc:next, message:'No prize available.' };
+
+  if(prize.type === 'physical'){
+    next.inventory.push(prize.name);
+    msg = `🎉 You won: ${prize.name}`;
+  } else if(prize.type === 'points'){
+    next.points += prize.amount;
+    msg = `🎉 You won: ${prize.amount} points!`;
+  } else if(prize.type === 'theme'){
+    const key = prize.themeKey;
+    if(next.themes.includes(key)) { next.points += 25; msg = 'Duplicate theme! Refunded 25 pts.'; }
+    else { next.themes.push(key); msg = `🎉 New theme: ${prize.name}`; }
+  } else if(prize.type === 'collectible' || prize.type === 'pokemon'){
+    if(next.collectibles.includes(prize.name)) { next.points += 25; msg = 'Duplicate collectible! Refunded 25 pts.'; }
+    else { next.collectibles.push(prize.name); msg = `🎉 New collectible: ${prize.name}`; }
+  }
+  return { nextAcc: next, message: msg };
 }
 
 function spin(){
-  let acc=accounts[currentUser];
-  if(acc.points<50)return alert("Not enough points!");
-  acc.points-=50;
+  const acc = accounts[currentUser];
+  if(acc.points < 50) return alert('Not enough points!');
+  acc.points -= 50;
 
-  // Filter Pokémon if already owned
-  let availablePrizes=wheelPrizes.filter(p=>!(p.type==="pokemon" && acc.collectibles.includes(p.name)));
+  const available = getAvailablePrizes();
+  const prize = weightedRandom(available);
 
-  let prize=weightedRandom(availablePrizes);
-  let prizeDisplay=document.getElementById("prizeDisplay");
-  let result=document.getElementById("result");
+  const prizeDisplay = document.getElementById('prizeDisplay');
+  const result = document.getElementById('result');
 
-  let flips=30,step=0,interval=50;
-  let anim=setInterval(()=>{
+  let flips = 30, step = 0, interval = 50;
+  const anim = setInterval(()=>{
     step++;
-    let fake=availablePrizes[Math.floor(Math.random()*availablePrizes.length)].name;
-    prizeDisplay.innerText=fake;
-    let scale=1+0.2*Math.sin(step*0.8);
-    prizeDisplay.style.transform=`scale(${scale})`;
-    if(step>=flips){
+    const fake = available[Math.floor(Math.random()*available.length)]?.name || '?';
+    prizeDisplay.innerText = fake;
+    const scale = 1 + 0.2*Math.sin(step*0.8);
+    prizeDisplay.style.transform = `scale(${scale})`;
+    if(step >= flips){
       clearInterval(anim);
-      prizeDisplay.innerText=prize.name;
-      prizeDisplay.style.transform="scale(1)";
+      prizeDisplay.innerText = prize ? prize.name : 'No Prize';
+      prizeDisplay.style.transform = 'scale(1)';
 
-      // Handle prize types
-      let alreadyTheme=acc.themes.includes(prize.name.toLowerCase().split(" ")[0]);
-      let alreadyCollect=acc.collectibles.includes(prize.name);
-      if(prize.type==="physical"){
-        acc.inventory.push(prize.name);
-        result.innerText=`🎉 You got: ${prize.name}`;
-      } else if(prize.type==="theme"){
-        if(alreadyTheme){acc.points+=25;result.innerText=`Duplicate theme! Refunded 25 pts.`;}
-        else {acc.themes.push(prize.name.toLowerCase().split(" ")[0]);result.innerText=`🎉 Theme unlocked: ${prize.name}`;}
-      } else if(prize.type==="collectible"){
-        if(alreadyCollect){acc.points+=25;result.innerText=`Duplicate collectible! Refunded 25 pts.`;}
-        else {acc.collectibles.push(prize.name);result.innerText=`🎉 Collectible obtained: ${prize.name}`;}
-      } else if(prize.type==="pokemon"){
-        acc.collectibles.push(prize.name);
-        result.innerText=`🎉 Ultra rare: ${prize.name}`;
-      } else if(prize.type==="points"){
-        acc.points+=prize.amount;result.innerText=`💰 You earned ${prize.amount} points!`;
-      }
+      const { nextAcc, message } = applyPrizePure(acc, prize);
+      // commit the pure result to the real account
+      accounts[currentUser] = nextAcc;
+      result.innerText = message;
       updateUI();
     }
-    interval+=10;
-  },interval);
+  }, interval);
 }
 
-// ===================== UI =====================
 function updateUI(){
-  let acc=accounts[currentUser];
-  document.getElementById("points").innerText=acc.points;
+  const acc = accounts[currentUser];
+  if(!acc) return;
+  document.getElementById('points').innerText = acc.points;
 
-  // Inventory
-  let inv=document.getElementById("inventory");inv.innerHTML="";
+  // inventory list
+  const inv = document.getElementById('inventory'); inv.innerHTML = '';
   acc.inventory.forEach((item,idx)=>{
-    let li=document.createElement("li");li.innerText=item;
-    let del=document.createElement("button");del.innerText="x";del.className="delete-btn";
-    del.onclick=()=>{acc.inventory.splice(idx,1);updateUI();}
-    li.appendChild(del);inv.appendChild(li);
+    const li = document.createElement('li'); li.innerText = item;
+    const del = document.createElement('button'); del.innerText='x'; del.className='delete-btn';
+    del.onclick = ()=>{ acc.inventory.splice(idx,1); saveData(); updateUI(); };
+    li.appendChild(del); inv.appendChild(li);
   });
 
-  // Collectibles
-  let col=document.getElementById("collectibles");col.innerHTML="";
-  acc.collectibles.forEach(c=>{
-    let li=document.createElement("li");li.innerText=c;
-    li.onclick=()=>showCollectibleAnimation(c);
-    col.appendChild(li);
+  // collectibles list
+  const coll = document.getElementById('collectibles'); coll.innerHTML = '';
+  acc.collectibles.forEach((c)=>{
+    const li = document.createElement('li');
+    li.innerHTML = `<span>${c}</span>`;
+    li.onclick = ()=>showCollectible(c);
+    coll.appendChild(li);
   });
 
-  // Themes
-  let themeSelect=document.getElementById("themeSelect");
-  themeSelect.innerHTML="<option value=''>--Choose Theme--</option>";
-  acc.themes.forEach(t=>{
-    let opt=document.createElement("option");opt.value=t;opt.innerText=t[0].toUpperCase()+t.slice(1)+" Theme";
-    if(t===acc.selectedTheme)opt.selected=true;
+  // theme selector
+  const themeSelect = document.getElementById('themeSelect');
+  themeSelect.innerHTML = "<option value=''>--Choose Theme--</option>";
+  acc.themes.forEach(key=>{
+    const meta = themeCatalog[key]; if(!meta) return;
+    const opt = document.createElement('option');
+    opt.value = key; opt.innerText = meta.label; if(key===acc.selectedTheme) opt.selected = true;
     themeSelect.appendChild(opt);
   });
-  if(acc.selectedTheme)applyTheme(acc.selectedTheme);
+
+  if(acc.selectedTheme) applyTheme(acc.selectedTheme);
   saveData();
 }
 
-function applyTheme(theme){
-  let acc=accounts[currentUser];
-  acc.selectedTheme=theme;
-  document.body.className="";
-  if(theme)document.body.classList.add("theme-"+theme);
+function applyTheme(themeKey){
+  const acc = accounts[currentUser];
+  acc.selectedTheme = themeKey || '';
+  // remove old theme-* classes
+  document.body.className = '';
+  if(themeKey) document.body.classList.add('theme-'+themeKey);
   saveData();
 }
 
-function showCollectibleAnimation(name){
-  let div=document.createElement("div");
-  div.className="collectible-spin";
-  div.innerText=name;
-  document.body.appendChild(div);
-  setTimeout(()=>div.remove(),2000);
+function showCollectible(name){
+  const overlay = document.createElement('div');
+  overlay.className = 'collectible-spin';
+
+  // Pick an image if we have one, else use a fallback emoji tile
+  let imgURL = collectibleImages[name];
+  if(!imgURL && POKEMON_GEN1.includes(name)) imgURL = collectibleImages['Pokeball'];
+
+  if(imgURL){
+    const img = document.createElement('img'); img.alt = name; img.src = imgURL; overlay.appendChild(img);
+  } else {
+    const box = document.createElement('div');
+    box.style.width = '180px'; box.style.height='180px'; box.style.borderRadius='12px'; box.style.background='linear-gradient(135deg,#444,#999)';
+    box.style.display='flex'; box.style.alignItems='center'; box.style.justifyContent='center'; box.style.fontSize='64px';
+    box.textContent = '🎁'; overlay.appendChild(box);
+  }
+  const label = document.createElement('div'); label.className='label'; label.textContent = name; overlay.appendChild(label);
+
+  document.body.appendChild(overlay);
+  setTimeout(()=> overlay.remove(), 1200);
 }
+
+// === Teacher controls ===
+function showTeacherLogin(){
+  if(teacherMode) return; // already logged in
+  const code = prompt('Enter teacher code:');
+  if(code === TEACHER_SECRET){
+    teacherMode = true;
+    document.getElementById('teacherPanel').classList.remove('hidden');
+    document.getElementById('teacherLoginBtn').classList.add('hidden');
+  } else {
+    alert('Wrong code!');
+  }
+}
+function addPoints(){
+  const amt = parseInt(document.getElementById('pointsToAdd').value,10);
+  if(teacherMode && amt>0){ accounts[currentUser].points += amt; saveData(); updateUI(); alert('Added '+amt+' points!'); }
+  else alert('Enter a valid amount!');
+}
+function logoutTeacher(){
+  teacherMode = false;
+  document.getElementById('teacherPanel').classList.add('hidden');
+  document.getElementById('teacherLoginBtn').classList.remove('hidden');
+}
+
+// === Self-tests (don’t modify player data) ===
+function runTests(){
+  if(!teacherMode){ alert('Teacher mode only.'); return; }
+  const out = [];
+  const base = { password:'x', points:0, inventory:[], themes:[], selectedTheme:'', collectibles:[] };
+
+  // T1: Duplicate theme refunds 25
+  let a1 = JSON.parse(JSON.stringify(base)); a1.themes=['neon'];
+  let r1 = applyPrizePure(a1,{ name:'Neon Theme', type:'theme', themeKey:'neon' });
+  out.push(assert(r1.nextAcc.points===25,'T1 duplicate theme refund 25')); 
+
+  // T2: Physicals stack, no refund
+  let a2 = JSON.parse(JSON.stringify(base));
+  let r2a = applyPrizePure(a2,{ name:'Lollipop', type:'physical' }).nextAcc;
+  let r2b = applyPrizePure(r2a,{ name:'Lollipop', type:'physical' }).nextAcc;
+  out.push(assert(r2b.inventory.filter(x=>x==='Lollipop').length===2,'T2 physical stacks'));
+
+  // T3: Duplicate collectible refunds 25
+  let a3 = JSON.parse(JSON.stringify(base)); a3.collectibles=['Cheese Collectible'];
+  let r3 = applyPrizePure(a3,{ name:'Cheese Collectible', type:'collectible' });
+  out.push(assert(r3.nextAcc.points===25,'T3 duplicate collectible refund 25'));
+
+  // T4: Pokémon excluded when owned
+  let a4 = JSON.parse(JSON.stringify(base)); a4.collectibles=['Bulbasaur'];
+  let avail4 = getAvailablePrizesFor(a4).some(p=>p.name==='Bulbasaur');
+  out.push(assert(avail4===false,'T4 pokemon excluded if owned'));
+
+  // T5: Pokémon added to collectibles when new
+  let a5 = JSON.parse(JSON.stringify(base));
+  let r5 = applyPrizePure(a5,{ name:'Ivysaur', type:'pokemon' });
+  out.push(assert(r5.nextAcc.collectibles.includes('Ivysaur'),'T5 pokemon recorded when new'));
+
+  // T6: Theme key mapping works for multi-word label (bw)
+  let a6 = JSON.parse(JSON.stringify(base));
+  let r6 = applyPrizePure(a6,{ name:'Black and White Theme', type:'theme', themeKey:'bw' });
+  out.push(assert(r6.nextAcc.themes.includes('bw'),'T6 theme key stored bw'));
+
+  const panel = document.getElementById('testOutput');
+  panel.classList.remove('hidden');
+  panel.textContent = out.join('\n');
+}
+function assert(cond,msg){ return (cond?'✅ PASS: ':'❌ FAIL: ')+msg; }
+
 </script>
 </body>
 </html>
