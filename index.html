@@ -39,8 +39,8 @@
   }
   button:hover{transform:scale(1.05);opacity:0.9;}
   .hidden{display:none;}
-  #inventory{list-style:none;padding:0;margin:0;max-height:150px;overflow-y:auto;}
-  #inventory li{
+  #inventory,#collectibles{list-style:none;padding:0;margin:0;max-height:150px;overflow-y:auto;}
+  #inventory li,#collectibles li{
     background: rgba(255,255,255,0.1);
     margin:5px 0;
     padding:8px;
@@ -48,6 +48,7 @@
     display:flex;
     justify-content:space-between;
     align-items:center;
+    cursor:pointer;
   }
   .delete-btn{
     background: crimson;color:white;border:none;border-radius:6px;padding:3px 8px;cursor:pointer;font-size:0.8rem;
@@ -68,23 +69,39 @@
     font-size:1.4rem;font-weight:bold;
     transition:transform 0.15s ease;
   }
-  .theme-dog{background:url('https://i.imgur.com/9i5G79G.jpg') center/cover;}
-  .theme-pirate{background:url('https://i.imgur.com/m5mG93q.jpeg') center/cover;}
-  .theme-neon{background:linear-gradient(135deg,#0f0f0f,#00ffcc);}
-  .theme-spooky{background:url('https://i.imgur.com/jyCOb3u.jpg') center/cover;}
   @keyframes fadeIn{
     from{opacity:0;transform:translateY(10px);}
     to{opacity:1;transform:translateY(0);}
   }
-  /* Teacher section styles */
-  #teacherLoginBtn{
-    width:auto;
-    padding:6px 12px;
-    font-size:0.9rem;
-    margin-top:15px;
-    background:linear-gradient(135deg,#555,#999);
+  @keyframes spinCollectible {
+    0% {transform: rotate(0deg) scale(0.5); opacity:0;}
+    50% {transform: rotate(360deg) scale(1.2); opacity:1;}
+    100% {transform: rotate(720deg) scale(1); opacity:0;}
   }
-  #teacherPanel{margin-top:20px;}
+  .collectible-spin {
+    position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+    font-size:3rem;
+    animation:spinCollectible 2s ease;
+    pointer-events:none;
+  }
+  /* Themes placeholders (easy to customize later) */
+  .theme-blackness {background:black; color:white;}
+  .theme-checker {background:repeating-linear-gradient(45deg, black 0 20px, white 20px 40px); color:black;}
+  .theme-bw {background:linear-gradient(90deg, black 50%, white 50%); color:white;}
+  .theme-neon {background:linear-gradient(135deg,#0f0f0f,#00ffcc);} 
+  .theme-space {background:radial-gradient(circle,#000 0%,#111 40%,#222 100%);} 
+  .theme-time {background:linear-gradient(135deg,#222,#555);} 
+  .theme-forest {background:linear-gradient(135deg,#013220,#228B22);} 
+  .theme-desert {background:linear-gradient(135deg,#EDC9Af,#C2B280);} 
+  .theme-cyber {background:linear-gradient(135deg,#0ff,#111);} 
+  .theme-music {background:linear-gradient(135deg,#222,#ff0080);} 
+  .theme-ice {background:linear-gradient(135deg,#00f,#0ff);} 
+  .theme-underwater {background:linear-gradient(135deg,#004,#00f);} 
+  .theme-dog {background:url('https://i.imgur.com/9i5G79G.jpg') center/cover;} 
+  .theme-undertale {background:linear-gradient(135deg,#000,#fff);} 
+  .theme-castle {background:linear-gradient(135deg,#666,#999);} 
+  .theme-amazingdigital {background:linear-gradient(135deg,#111,#ff0);} 
+  .theme-pirate {background:url('https://i.imgur.com/m5mG93q.jpeg') center/cover;} 
 </style>
 </head>
 <body>
@@ -101,47 +118,80 @@
 <p>⭐ Points: <span id="points">0</span></p>
 
 <div id="wheelButtons">
-<button onclick="spin()">Spin Wheel</button>
+<button onclick="spin()">Spin Wheel (50 pts)</button>
 </div>
 
 <div id="wheelBox"><div class="prizeText" id="prizeDisplay">?</div></div>
 <p id="result"></p>
 
-<h3>Inventory</h3>
+<h3>Inventory (Physical Prizes)</h3>
 <ul id="inventory"></ul>
+
+<h3>Collectibles</h3>
+<ul id="collectibles"></ul>
 
 <h3>Theme Selector</h3>
 <select id="themeSelect" onchange="applyTheme(this.value)">
 <option value="">--Choose Theme--</option>
 </select>
-
-<!-- Teacher toggle -->
-<button id="teacherLoginBtn" onclick="showTeacherLogin()">Teacher</button>
-<div id="teacherPanel" class="hidden">
-  <h3>Teacher Controls</h3>
-  <input type="number" id="pointsToAdd" placeholder="Points to add">
-  <button onclick="addPoints()">Add Points</button>
-  <button onclick="logoutTeacher()">Log Out</button>
-</div>
 </div>
 
 <script>
 const TEACHER_SECRET="7545";
 
+// ===================== Prize Pool =====================
 const wheelPrizes=[
-  {name:"Lollipop",weight:4,refund:2},
-  {name:"New Pencil",weight:3},
-  {name:"Dog Theme",weight:2,type:"theme"},
+  // Physical Prizes (stackable, no refund)
+  {name:"Lollipop",weight:40,type:"physical"},
+  {name:"Sticker",weight:30,type:"physical"},
+  {name:"Do 10 Pushups Lol",weight:10,type:"physical"},
+  {name:"Do a thingy with Ezra",weight:5,type:"physical"},
+
+  // Themes (refund 25)
+  {name:"Blackness Theme",weight:100,type:"theme"},
+  {name:"Checker Theme",weight:100,type:"theme"},
+  {name:"Black and White Theme",weight:100,type:"theme",key:"bw"},
+  {name:"Neon Theme",weight:90,type:"theme"},
+  {name:"Space Theme",weight:80,type:"theme"},
+  {name:"Time Theme",weight:70,type:"theme"},
+  {name:"Forest Theme",weight:60,type:"theme"},
+  {name:"Desert Theme",weight:50,type:"theme"},
+  {name:"Cyber Theme",weight:40,type:"theme"},
+  {name:"Music Theme",weight:30,type:"theme"},
+  {name:"Ice Theme",weight:15,type:"theme"},
+  {name:"Underwater Theme",weight:15,type:"theme"},
+  {name:"Dog Theme",weight:5,type:"theme"},
+  {name:"Undertale Theme",weight:4,type:"theme"},
+  {name:"Castle Theme",weight:3,type:"theme"},
+  {name:"Amazing Digital Theme",weight:2,type:"theme"},
   {name:"Pirate Theme",weight:1,type:"theme"},
-  {name:"Neon Theme",weight:1,type:"theme"},
-  {name:"Blackness Theme",weight:1,type:"theme"},
-  {name:"50 Points",weight:2,type:"points",amount:50},
-  {name:"100 Points",weight:1,type:"points",amount:100}
+
+  // Collectibles (refund 25, except Pokémon which are unique)
+  {name:"Pirate King Collectible",weight:1,type:"collectible"},
+  {name:"Black Knight Collectible",weight:2,type:"collectible"},
+  {name:"Doge Crown Collectible",weight:4,type:"collectible"},
+  {name:"Pepe Collectible",weight:8,type:"collectible"},
+  {name:"Sussy Imposter Collectible",weight:10,type:"collectible"},
+  {name:"Nyan Cat Collectible",weight:15,type:"collectible"},
+  {name:"Bad Time Collectible",weight:20,type:"collectible"},
+  {name:"Epic Sax Collectible",weight:25,type:"collectible"},
+  {name:"Noob Collectible",weight:30,type:"collectible"},
+  {name:"Shopping Cart Collectible",weight:35,type:"collectible"},
+  {name:"Film Theory Collectible",weight:20,type:"collectible"},
+  {name:"Game Theory Collectible",weight:15,type:"collectible"},
+  {name:"Food Theory Collectible",weight:15,type:"collectible"},
+  {name:"Style Theory Collectible",weight:15,type:"collectible"},
+  {name:"Cheese Collectible",weight:10,type:"collectible"},
+  {name:"EVERY GEN 1 POKEMON COLLECTIBLE",weight:5,type:"pokemon"},
+
+  // Points
+  {name:"50 Points",weight:10,type:"points",amount:50},
+  {name:"100 Points",weight:5,type:"points",amount:100}
 ];
 
+// ===================== Accounts =====================
 let accounts=JSON.parse(localStorage.getItem("accounts"))||{};
 let currentUser=null;
-let teacherMode=false;
 
 function saveData(){localStorage.setItem("accounts",JSON.stringify(accounts));}
 
@@ -150,7 +200,7 @@ function signup(){
   let p=document.getElementById("password").value;
   if(!u||!p)return alert("Enter username and password.");
   if(accounts[u])return alert("Account exists!");
-  accounts[u]={password:p,points:0,inventory:[],themes:[],selectedTheme:""};
+  accounts[u]={password:p,points:0,inventory:[],themes:[],selectedTheme:"",collectibles:[]};
   saveData();currentUser=u;startGame();
 }
 
@@ -169,6 +219,7 @@ function startGame(){
   document.getElementById("gameBox").classList.remove("hidden");
 }
 
+// ===================== Wheel =====================
 function weightedRandom(items){
   let total=items.reduce((sum,i)=>sum+i.weight,0);
   let r=Math.random()*total;
@@ -180,14 +231,17 @@ function spin(){
   if(acc.points<50)return alert("Not enough points!");
   acc.points-=50;
 
-  let prize=weightedRandom(wheelPrizes);
+  // Filter Pokémon if already owned
+  let availablePrizes=wheelPrizes.filter(p=>!(p.type==="pokemon" && acc.collectibles.includes(p.name)));
+
+  let prize=weightedRandom(availablePrizes);
   let prizeDisplay=document.getElementById("prizeDisplay");
   let result=document.getElementById("result");
 
   let flips=30,step=0,interval=50;
   let anim=setInterval(()=>{
     step++;
-    let fake=wheelPrizes[Math.floor(Math.random()*wheelPrizes.length)].name;
+    let fake=availablePrizes[Math.floor(Math.random()*availablePrizes.length)].name;
     prizeDisplay.innerText=fake;
     let scale=1+0.2*Math.sin(step*0.8);
     prizeDisplay.style.transform=`scale(${scale})`;
@@ -195,16 +249,24 @@ function spin(){
       clearInterval(anim);
       prizeDisplay.innerText=prize.name;
       prizeDisplay.style.transform="scale(1)";
-      let acc=accounts[currentUser];
-      let already=acc.inventory.includes(prize.name)||acc.themes.includes(prize.name.split(" ")[0].toLowerCase());
-      if(already&&prize.type!=="points"){
-        acc.points+=prize.refund||50;
-        result.innerText=`Duplicate! Refunded ${prize.refund||5} pts.`;
-      } else{
-        if(prize.type==="points")acc.points+=prize.amount;
-        else if(prize.type==="theme")acc.themes.push(prize.name.split(" ")[0].toLowerCase());
-        else acc.inventory.push(prize.name);
-        result.innerText=`🎉 You won: ${prize.name}`;
+
+      // Handle prize types
+      let alreadyTheme=acc.themes.includes(prize.name.toLowerCase().split(" ")[0]);
+      let alreadyCollect=acc.collectibles.includes(prize.name);
+      if(prize.type==="physical"){
+        acc.inventory.push(prize.name);
+        result.innerText=`🎉 You got: ${prize.name}`;
+      } else if(prize.type==="theme"){
+        if(alreadyTheme){acc.points+=25;result.innerText=`Duplicate theme! Refunded 25 pts.`;}
+        else {acc.themes.push(prize.name.toLowerCase().split(" ")[0]);result.innerText=`🎉 Theme unlocked: ${prize.name}`;}
+      } else if(prize.type==="collectible"){
+        if(alreadyCollect){acc.points+=25;result.innerText=`Duplicate collectible! Refunded 25 pts.`;}
+        else {acc.collectibles.push(prize.name);result.innerText=`🎉 Collectible obtained: ${prize.name}`;}
+      } else if(prize.type==="pokemon"){
+        acc.collectibles.push(prize.name);
+        result.innerText=`🎉 Ultra rare: ${prize.name}`;
+      } else if(prize.type==="points"){
+        acc.points+=prize.amount;result.innerText=`💰 You earned ${prize.amount} points!`;
       }
       updateUI();
     }
@@ -212,17 +274,29 @@ function spin(){
   },interval);
 }
 
+// ===================== UI =====================
 function updateUI(){
   let acc=accounts[currentUser];
   document.getElementById("points").innerText=acc.points;
-  let inv=document.getElementById("inventory");
-  inv.innerHTML="";
+
+  // Inventory
+  let inv=document.getElementById("inventory");inv.innerHTML="";
   acc.inventory.forEach((item,idx)=>{
     let li=document.createElement("li");li.innerText=item;
     let del=document.createElement("button");del.innerText="x";del.className="delete-btn";
     del.onclick=()=>{acc.inventory.splice(idx,1);updateUI();}
     li.appendChild(del);inv.appendChild(li);
   });
+
+  // Collectibles
+  let col=document.getElementById("collectibles");col.innerHTML="";
+  acc.collectibles.forEach(c=>{
+    let li=document.createElement("li");li.innerText=c;
+    li.onclick=()=>showCollectibleAnimation(c);
+    col.appendChild(li);
+  });
+
+  // Themes
   let themeSelect=document.getElementById("themeSelect");
   themeSelect.innerHTML="<option value=''>--Choose Theme--</option>";
   acc.themes.forEach(t=>{
@@ -242,27 +316,12 @@ function applyTheme(theme){
   saveData();
 }
 
-/* Teacher controls */
-function showTeacherLogin(){
-  if(teacherMode) return; // already logged in
-  let code=prompt("Enter teacher code:");
-  if(code===TEACHER_SECRET){
-    teacherMode=true;
-    document.getElementById("teacherPanel").classList.remove("hidden");
-    document.getElementById("teacherLoginBtn").classList.add("hidden");
-  } else {
-    alert("Wrong code!");
-  }
-}
-function addPoints(){
-  let amt=parseInt(document.getElementById("pointsToAdd").value);
-  if(teacherMode&&amt>0){accounts[currentUser].points+=amt;updateUI();alert("Added "+amt+" points!");}
-  else alert("Enter a valid amount!");
-}
-function logoutTeacher(){
-  teacherMode=false;
-  document.getElementById("teacherPanel").classList.add("hidden");
-  document.getElementById("teacherLoginBtn").classList.remove("hidden");
+function showCollectibleAnimation(name){
+  let div=document.createElement("div");
+  div.className="collectible-spin";
+  div.innerText=name;
+  document.body.appendChild(div);
+  setTimeout(()=>div.remove(),2000);
 }
 </script>
 </body>
