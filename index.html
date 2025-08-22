@@ -1,216 +1,342 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
+  <title>Questwork 3.0</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Questwork</title>
   <style>
     body {
       margin: 0;
-      font-family: 'Poppins', sans-serif;
-      background: linear-gradient(to bottom right, #4facfe, #00f2fe);
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #1f1c2c 0%, #928DAB 100%);
+      color: #fff;
+      min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
-    }
-
-    .container {
-      background: white;
-      padding: 2rem;
-      border-radius: 15px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-      max-width: 500px;
-      width: 90%;
+      flex-direction: column;
       text-align: center;
+      transition: background 0.5s ease;
     }
 
-    h1 {
-      margin-bottom: 1rem;
-      color: #333;
+    .card {
+      background: rgba(0, 0, 0, 0.6);
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+      max-width: 550px;
+      width: 95%;
+      animation: fadeIn 0.5s ease-in;
+      margin: 10px;
+    }
+
+    h2, h3 {
+      margin-top: 0;
+      color: #ffdd57;
+      text-shadow: 1px 1px 4px #000;
+    }
+
+    input, button, select {
+      width: 90%;
+      padding: 12px;
+      margin: 8px 0;
+      border-radius: 8px;
+      border: none;
+      font-size: 1rem;
+      outline: none;
+    }
+
+    input {
+      background: #f4f4f4;
     }
 
     button {
-      background: #4facfe;
-      border: none;
+      background: linear-gradient(135deg, #ff6a00, #ee0979);
       color: white;
-      padding: 10px 20px;
-      border-radius: 8px;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: 0.2s;
-      margin: 5px;
-    }
-    button:hover {
-      background: #00c6ff;
-    }
-
-    #animation-box {
-      border: 2px solid #ddd;
-      margin: 1rem auto;
-      padding: 1.5rem;
-      border-radius: 10px;
-      font-size: 1.4rem;
-      height: 60px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      overflow: hidden;
       font-weight: bold;
-      color: #444;
+      cursor: pointer;
+      transition: transform 0.2s, opacity 0.3s;
+    }
+    button:hover { transform: scale(1.05); opacity: 0.9; }
+
+    .hidden { display: none; }
+
+    #inventory {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      max-height: 150px;
+      overflow-y: auto;
     }
 
-    .theme-dog {
-      background: url('https://i.ibb.co/znx9j8L/cutedog.jpg') no-repeat center center/cover;
-      color: white;
-    }
-
-    .inventory {
-      margin-top: 1.5rem;
-      text-align: left;
-    }
-
-    .inventory-item {
-      display: flex;
-      justify-content: space-between;
-      background: #f0f0f0;
+    #inventory li {
+      background: rgba(255,255,255,0.1);
       margin: 5px 0;
       padding: 8px;
       border-radius: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
     .delete-btn {
       background: crimson;
-      padding: 4px 10px;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 3px 8px;
+      cursor: pointer;
       font-size: 0.8rem;
+    }
+
+    /* Prize animation box */
+    #wheelBox {
+      margin: 20px auto;
+      width: 250px;
+      height: 60px;
+      overflow: hidden;
+      border: 3px solid #fff;
+      border-radius: 8px;
+      background: rgba(0,0,0,0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .prizeText {
+      font-size: 1.4rem;
+      font-weight: bold;
+      animation: none;
+    }
+
+    @keyframes slide {
+      from { transform: translateY(0); opacity: 1; }
+      to { transform: translateY(-100%); opacity: 0; }
+    }
+
+    /* Themes */
+    .theme-dog { background: url('https://i.imgur.com/9i5G79G.jpg') center/cover; }
+    .theme-pirate { background: url('https://i.imgur.com/m5mG93q.jpeg') center/cover; }
+    .theme-neon { background: linear-gradient(135deg, #0f0f0f, #00ffcc); }
+    .theme-spooky { background: url('https://i.imgur.com/jyCOb3u.jpg') center/cover; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Questwork Prize Roll</h1>
-    <div id="points">Points: 50</div>
-    <button onclick="startRoll()">Roll (10 pts)</button>
-    <div id="animation-box">Press Roll!</div>
+  <!-- Login / Signup -->
+  <div class="card" id="loginCard">
+    <h2>Questwork Login</h2>
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="signup()">Sign Up</button>
+    <button onclick="login()">Sign In</button>
+  </div>
 
-    <div class="inventory">
-      <h3>Your Inventory</h3>
-      <div id="inventory-list"></div>
-    </div>
+  <!-- Game -->
+  <div class="card hidden" id="gameBox">
+    <h2>Welcome, <span id="playerName"></span>!</h2>
+    <p>⭐ Points: <span id="points">0</span></p>
 
-    <div>
-      <h3>Themes</h3>
-      <div id="theme-list"></div>
-    </div>
+    <div id="wheelButtons"></div>
+    <div id="wheelBox"><div class="prizeText" id="prizeDisplay">?</div></div>
+    <p id="result"></p>
+
+    <h3>Inventory</h3>
+    <ul id="inventory"></ul>
+
+    <h3>Theme Selector</h3>
+    <select id="themeSelect" onchange="applyTheme(this.value)">
+      <option value="">--Choose Theme--</option>
+    </select>
+
+    <h3>Teacher Controls</h3>
+    <input type="password" id="teacherCode" placeholder="Enter teacher code">
+    <input type="number" id="pointsToAdd" placeholder="Points to add">
+    <button onclick="addPoints()">Add Points</button>
   </div>
 
   <script>
-    let points = 50;
-    let inventory = JSON.parse(localStorage.getItem('inventory')) || [];
-    let themes = JSON.parse(localStorage.getItem('themes')) || [];
-    let currentTheme = localStorage.getItem('theme') || null;
+    // --- CONFIG ---
+    const TEACHER_SECRET = 7545";
 
-    const prizes = [
-      "Dog Theme",
-      "Pirate Theme",
-      "10 Bonus Points",
-      "Cool Sword",
-      "Magic Hat",
-      "Rainbow Badge"
-    ];
+    const wheels = {
+      bronze: {
+        cost: 5,
+        refund: 3,
+        prizes: [
+          { name: "Sticker Pack", refund: 2 },
+          { name: "Dog Theme", type: "theme" },
+          { name: "Pencil Upgrade" },
+          { name: "Nothing" }
+        ]
+      },
+      silver: {
+        cost: 15,
+        refund: 8,
+        prizes: [
+          { name: "Pirate Theme", type: "theme" },
+          { name: "Cool Hat" },
+          { name: "1 Bonus Point", type: "points", amount: 1 },
+          { name: "Neon Theme", type: "theme" }
+        ]
+      },
+      gold: {
+        cost: 50,
+        refund: 25,
+        prizes: [
+          { name: "Spooky Theme", type: "theme" },
+          { name: "Golden Trophy" },
+          { name: "VIP Badge" },
+          { name: "50 Bonus Points", type: "points", amount: 50 }
+        ]
+      }
+    };
+
+    // --- DATA ---
+    let accounts = JSON.parse(localStorage.getItem("accounts")) || {};
+    let currentUser = null;
 
     function saveData() {
-      localStorage.setItem('inventory', JSON.stringify(inventory));
-      localStorage.setItem('themes', JSON.stringify(themes));
-      localStorage.setItem('theme', currentTheme);
-      localStorage.setItem('points', points);
+      localStorage.setItem("accounts", JSON.stringify(accounts));
     }
 
-    function loadData() {
-      document.getElementById("points").innerText = "Points: " + points;
-      let invList = document.getElementById("inventory-list");
-      invList.innerHTML = "";
-      inventory.forEach((item, i) => {
-        invList.innerHTML += `
-          <div class="inventory-item">
-            <span>${item}</span>
-            <button class="delete-btn" onclick="removeItem(${i})">Delete</button>
-          </div>`;
-      });
+    // --- LOGIN / SIGNUP ---
+    function signup() {
+      let user = document.getElementById("username").value;
+      let pass = document.getElementById("password").value;
+      if (!user || !pass) return alert("Enter username and password.");
+      if (accounts[user]) return alert("Account already exists!");
+      accounts[user] = { password: pass, points: 0, inventory: [], themes: [], selectedTheme: "" };
+      saveData();
+      alert("Account created! Now log in.");
+    }
 
-      let themeList = document.getElementById("theme-list");
-      themeList.innerHTML = "";
-      themes.forEach(t => {
-        themeList.innerHTML += `<button onclick="setTheme('${t}')">${t}</button>`;
-      });
+    function login() {
+      let user = document.getElementById("username").value;
+      let pass = document.getElementById("password").value;
+      if (!accounts[user]) return alert("No account. Please sign up.");
+      if (accounts[user].password !== pass) return alert("Wrong password.");
+      currentUser = user;
+      startGame();
+    }
 
-      if (currentTheme === "Dog Theme") {
-        document.body.classList.add("theme-dog");
-      } else {
-        document.body.classList.remove("theme-dog");
+    // --- GAME START ---
+    function startGame() {
+      document.getElementById("playerName").innerText = currentUser;
+      buildWheelButtons();
+      updateUI();
+      document.getElementById("loginCard").classList.add("hidden");
+      document.getElementById("gameBox").classList.remove("hidden");
+    }
+
+    function buildWheelButtons() {
+      let container = document.getElementById("wheelButtons");
+      container.innerHTML = "";
+      for (let w in wheels) {
+        let btn = document.createElement("button");
+        btn.innerText = `Spin ${w} Wheel (${wheels[w].cost} pts)`;
+        btn.onclick = () => spin(w);
+        container.appendChild(btn);
       }
     }
 
-    function startRoll() {
-      if (points < 10) {
-        alert("Not enough points!");
-        return;
-      }
-      points -= 10;
-      let box = document.getElementById("animation-box");
+    // --- TEXT FLIP ANIMATION ---
+    function spin(type) {
+      let acc = accounts[currentUser];
+      let wheel = wheels[type];
+      if (acc.points < wheel.cost) return alert("Not enough points!");
+      acc.points -= wheel.cost;
+
+      let prize = wheel.prizes[Math.floor(Math.random() * wheel.prizes.length)];
+      let prizeDisplay = document.getElementById("prizeDisplay");
+      let result = document.getElementById("result");
+
       let i = 0;
-      let rollCount = 20 + Math.floor(Math.random()*10);
+      let spins = 15 + Math.floor(Math.random() * 10); // how many flips
       let interval = setInterval(() => {
-        box.innerText = prizes[i % prizes.length];
+        let rand = wheel.prizes[Math.floor(Math.random() * wheel.prizes.length)].name;
+        prizeDisplay.innerText = rand;
         i++;
-        if (i > rollCount) {
+        if (i > spins) {
           clearInterval(interval);
-          let prize = box.innerText;
-          awardPrize(prize);
+          prizeDisplay.innerText = prize.name;
+
+          // Check duplicate
+          let already = acc.inventory.includes(prize.name) || acc.themes.includes(prize.name.split(" ")[0].toLowerCase());
+          if (already && prize.type !== "points") {
+            acc.points += prize.refund || wheel.refund;
+            result.innerText = `Duplicate! Refunded ${prize.refund || wheel.refund} pts.`;
+          } else {
+            if (prize.type === "points") acc.points += prize.amount;
+            else if (prize.type === "theme") {
+              let themeKey = prize.name.split(" ")[0].toLowerCase();
+              acc.themes.push(themeKey);
+            } else acc.inventory.push(prize.name);
+            result.innerText = `🎉 You won: ${prize.name}`;
+          }
+          updateUI();
         }
-      }, 150);
-      saveData();
-      loadData();
+      }, 120);
     }
 
-    function awardPrize(prize) {
-      if (prize === "10 Bonus Points") {
-        points += 10;
-      } else if (prize.includes("Theme")) {
-        if (!themes.includes(prize)) {
-          themes.push(prize);
-          alert("You unlocked a new theme: " + prize + "!");
-        } else {
-          points += 5; // refund for duplicate
-          alert("Duplicate theme! Refunded 5 points.");
-        }
-      } else {
-        if (!inventory.includes(prize)) {
-          inventory.push(prize);
-        } else {
-          points += 3; // refund for duplicate item
-          alert("Duplicate item! Refunded 3 points.");
-        }
-      }
+    // --- UI ---
+    function updateUI() {
+      let acc = accounts[currentUser];
+      document.getElementById("points").innerText = acc.points;
+
+      // inventory
+      let inv = document.getElementById("inventory");
+      inv.innerHTML = "";
+      acc.inventory.forEach((item, idx) => {
+        let li = document.createElement("li");
+        li.innerText = item;
+        let del = document.createElement("button");
+        del.innerText = "x";
+        del.className = "delete-btn";
+        del.onclick = () => {
+          acc.inventory.splice(idx, 1);
+          updateUI();
+        };
+        li.appendChild(del);
+        inv.appendChild(li);
+      });
+
+      // theme select
+      let themeSelect = document.getElementById("themeSelect");
+      themeSelect.innerHTML = "<option value=''>--Choose Theme--</option>";
+      acc.themes.forEach(t => {
+        let opt = document.createElement("option");
+        opt.value = t;
+        opt.innerText = t[0].toUpperCase() + t.slice(1) + " Theme";
+        if (t === acc.selectedTheme) opt.selected = true;
+        themeSelect.appendChild(opt);
+      });
+
+      if (acc.selectedTheme) applyTheme(acc.selectedTheme);
       saveData();
-      loadData();
     }
 
-    function removeItem(i) {
-      inventory.splice(i,1);
+    function applyTheme(theme) {
+      let acc = accounts[currentUser];
+      acc.selectedTheme = theme;
+      document.body.className = "";
+      if (theme) document.body.classList.add("theme-" + theme);
       saveData();
-      loadData();
     }
 
-    function setTheme(theme) {
-      currentTheme = theme;
-      saveData();
-      loadData();
+    function addPoints() {
+      let code = document.getElementById("teacherCode").value;
+      let amt = parseInt(document.getElementById("pointsToAdd").value);
+      if (code === TEACHER_SECRET && amt > 0) {
+        accounts[currentUser].points += amt;
+        updateUI();
+        alert("Added " + amt + " points!");
+      } else alert("Wrong teacher code!");
     }
-
-    // Init
-    points = parseInt(localStorage.getItem('points')) || points;
-    loadData();
   </script>
 </body>
 </html>
