@@ -1,264 +1,532 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Questwork 4.2</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<title>Questwork 4.3 – Endless Dungeon</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <style>
+  :root { --card-bg: rgba(0,0,0,0.6); }
   body {
-    margin:0;
-    font-family:'Segoe UI', sans-serif;
-    background: linear-gradient(135deg,#1f1c2c 0%,#928DAB 100%);
-    color:#fff;
-    min-height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    flex-direction:column;
-    text-align:center;
-    transition:background 0.5s ease;
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #1f1c2c 0%, #928DAB 100%);
+    color: #fff;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    text-align: center;
+    transition: background 0.5s ease;
   }
   .card {
-    background: rgba(0,0,0,0.6);
-    padding:20px;
-    border-radius:16px;
-    box-shadow:0 8px 20px rgba(0,0,0,0.4);
-    max-width:550px;
-    width:95%;
-    margin:10px;
-    animation:fadeIn 0.5s ease-in;
+    background: var(--card-bg);
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+    max-width: 650px;
+    width: 95%;
+    margin: 10px;
+    animation: fadeIn 0.5s ease-in;
   }
-  h2,h3{margin-top:0;color:#ffdd57;text-shadow:1px 1px 4px #000;}
-  input,button,select{
-    width:90%;padding:12px;margin:8px 0;border-radius:8px;border:none;font-size:1rem;outline:none;
+  h2, h3 { margin-top: 0; color: #ffdd57; text-shadow: 1px 1px 4px #000; }
+  input, button, select {
+    width: 90%;
+    padding: 12px;
+    margin: 8px 0;
+    border-radius: 8px;
+    border: none;
+    font-size: 1rem;
+    outline: none;
   }
-  input{background:#f4f4f4;}
-  button{
-    background: linear-gradient(135deg,#ff6a00,#ee0979);
-    color:white;font-weight:bold;cursor:pointer;transition:transform 0.2s,opacity 0.3s;
+  input { background: #f4f4f4; }
+  button {
+    background: linear-gradient(135deg, #ff6a00, #ee0979);
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s, opacity 0.3s;
   }
-  button:hover{transform:scale(1.05);opacity:0.9;}
-  .hidden{display:none;}
-  #inventory{list-style:none;padding:0;margin:0;max-height:150px;overflow-y:auto;}
-  #inventory li{
+  button:hover { transform: scale(1.05); opacity: 0.9; }
+  .hidden { display: none; }
+  #inventory { list-style: none; padding: 0; margin: 0; max-height: 150px; overflow-y: auto; }
+  #inventory li {
     background: rgba(255,255,255,0.1);
-    margin:5px 0;
-    padding:8px;
-    border-radius:6px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
+    margin: 5px 0;
+    padding: 8px;
+    border-radius: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
-  .delete-btn{
-    background: crimson;color:white;border:none;border-radius:6px;padding:3px 8px;cursor:pointer;font-size:0.8rem;
-  }
-  #wheelBox{
-    margin:20px auto;
-    width:250px;
-    height:60px;
-    overflow:hidden;
-    border:3px solid #fff;
-    border-radius:8px;
+  .delete-btn { background: crimson; color: white; border: none; border-radius: 6px; padding: 3px 8px; cursor: pointer; font-size: 0.8rem; }
+  #wheelBox {
+    margin: 20px auto;
+    width: 280px;
+    height: 60px;
+    overflow: hidden;
+    border: 3px solid #fff;
+    border-radius: 8px;
     background: rgba(0,0,0,0.8);
-    display:flex;
-    justify-content:center;
-    align-items:center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
-  .prizeText{
-    font-size:1.4rem;font-weight:bold;
-    transition:transform 0.15s ease;
-  }
-  @keyframes fadeIn{
-    from{opacity:0;transform:translateY(10px);}
-    to{opacity:1;transform:translateY(0);}
-  }
-  #dungeonContainer {margin-top:20px;}
-  #mobileControls button {margin:2px;}
+  .prizeText { font-size: 1.4rem; font-weight: bold; transition: transform 0.15s ease; }
+  .toolbar { display:flex; gap:8px; justify-content:center; align-items:center; flex-wrap:wrap; margin-top:8px; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Themes (kept from original) */
+  .theme-dog { background: url('https://i.imgur.com/9i5G79G.jpg') center/cover; }
+  .theme-pirate { background: url('https://i.imgur.com/m5mG93q.jpeg') center/cover; }
+  .theme-neon { background: linear-gradient(135deg, #0f0f0f, #00ffcc); }
+  .theme-spooky { background: url('https://i.imgur.com/jyCOb3u.jpg') center/cover; }
+
+  /* Dungeon */
+  #dungeonContainer { margin-top: 20px; }
+  #dungeonCanvas { border: 3px solid #fff; max-width: 100%; image-rendering: pixelated; }
+  #mobileControls button { margin: 2px; min-width: 52px; }
+  #hud { font-size: 0.95rem; opacity: 0.9; }
+  #diag { margin-top: 6px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; text-align: left; background: rgba(0,0,0,0.35); padding:10px; border-radius:8px; max-height:160px; overflow:auto; }
 </style>
 </head>
 <body>
-<div class="card" id="loginCard">
-<h2>Questwork Login</h2>
-<input type="text" id="username" placeholder="Username">
-<input type="password" id="password" placeholder="Password">
-<button onclick="signup()">Sign Up</button>
-<button onclick="login()">Sign In</button>
-</div>
-
-<div class="card hidden" id="gameBox">
-<h2>Welcome, <span id="playerName"></span>!</h2>
-<p>⭐ Points: <span id="points">0</span></p>
-
-<div id="wheelButtons">
-<button onclick="spin()">Spin Wheel</button>
-</div>
-
-<div id="wheelBox"><div class="prizeText" id="prizeDisplay">?</div></div>
-<p id="result"></p>
-
-<h3>Dungeon</h3>
-<canvas id="dungeonCanvas" width="480" height="480" style="border:3px solid white"></canvas>
-<div id="mobileControls" class="hidden">
-  <button onclick="movePlayer(0,-1)">⬆️</button>
-  <div>
-    <button onclick="movePlayer(-1,0)">⬅️</button>
-    <button onclick="movePlayer(1,0)">➡️</button>
+  <div class="card" id="loginCard">
+    <h2>Questwork Login</h2>
+    <input type="text" id="username" placeholder="Username" />
+    <input type="password" id="password" placeholder="Password" />
+    <button id="btnSignUp">Sign Up</button>
+    <button id="btnSignIn">Sign In</button>
   </div>
-  <button onclick="movePlayer(0,1)">⬇️</button>
-  <button onclick="attack()">⚔️</button>
-</div>
 
-<h3>Inventory</h3>
-<ul id="inventory"></ul>
+  <div class="card hidden" id="gameBox">
+    <h2>Welcome, <span id="playerName"></span>!</h2>
+    <p>⭐ Points: <span id="points">0</span></p>
 
-<h3>Theme Selector</h3>
-<select id="themeSelect" onchange="applyTheme(this.value)">
-<option value="">--Choose Theme--</option>
-</select>
-</div>
+    <div id="wheelButtons" class="toolbar">
+      <button id="btnSpin">Spin Wheel</button>
+    </div>
+
+    <div id="wheelBox"><div class="prizeText" id="prizeDisplay">?</div></div>
+    <p id="result"></p>
+
+    <h3>Inventory</h3>
+    <ul id="inventory"></ul>
+
+    <h3>Dungeon</h3>
+    <div id="dungeonContainer">
+      <canvas id="dungeonCanvas" width="480" height="480"></canvas>
+      <div id="hud">Lives: <span id="hudLives">0</span> • Level: <span id="hudLevel">1</span> • Room: <span id="hudRoom">0,0</span></div>
+      <div class="toolbar">
+        <button id="btnAttack">⚔️ Attack (Space)</button>
+        <button id="btnFS">⛶ Fullscreen</button>
+        <button id="btnDiag">🧪 Run Diagnostics</button>
+      </div>
+      <div id="mobileControls" class="hidden">
+        <button data-move="0,-1">⬆️</button>
+        <div>
+          <button data-move="-1,0">⬅️</button>
+          <button data-move="1,0">➡️</button>
+        </div>
+        <button data-move="0,1">⬇️</button>
+        <button id="btnMobileAttack">⚔️</button>
+      </div>
+      <div id="diag" class="hidden"></div>
+    </div>
+
+    <h3>Theme Selector</h3>
+    <select id="themeSelect">
+      <option value="">--Choose Theme--</option>
+    </select>
+
+    <!-- Teacher toggle -->
+    <button id="teacherLoginBtn" style="width:auto;padding:6px 12px;font-size:0.9rem;margin-top:15px;background:linear-gradient(135deg,#555,#999);">Teacher</button>
+    <div id="teacherPanel" class="hidden">
+      <h3>Teacher Controls</h3>
+      <input type="number" id="pointsToAdd" placeholder="Points to add" />
+      <button id="btnAddPoints">Add Points</button>
+      <button id="btnTeacherLogout">Log Out</button>
+    </div>
+  </div>
 
 <script>
-/* === Endless Dungeon === */
-const tileSize=32;
-const mapSize=15;
-let dungeonGame=null;
+// --- SAFETY: wait for DOM ---
+window.addEventListener('DOMContentLoaded', () => {
+  /* =====================
+     State & Persistence
+  ===================== */
+  const TEACHER_SECRET = 'QUEST123';
+  const wheelPrizes = [
+    {name:'Sticker Pack',weight:4,refund:2},
+    {name:'Dog Theme',weight:2,type:'theme'},
+    {name:'Pencil Upgrade',weight:3},
+    {name:'Pirate Theme',weight:1,type:'theme'},
+    {name:'Neon Theme',weight:1,type:'theme'},
+    {name:'Spooky Theme',weight:1,type:'theme'},
+    {name:'1 Bonus Point',weight:2,type:'points',amount:1},
+    {name:'50 Bonus Points',weight:1,type:'points',amount:50}
+  ];
 
-class DungeonGame{
-  constructor(user){
-    this.user=user;
-    this.canvas=document.getElementById("dungeonCanvas");
-    this.ctx=this.canvas.getContext("2d");
-    this.rooms={}; // store visited rooms
-    this.player={x:7,y:7,roomX:0,roomY:0};
-    this.lives=3;this.level=1;
-    this.load();
-    this.generateRoom(0,0);
-    this.loop();
-    window.addEventListener("keydown",e=>this.handleInput(e));
+  let accounts = JSON.parse(localStorage.getItem('accounts')) || {};
+  let currentUser = null;
+  let teacherMode = false;
+
+  function saveData(){ localStorage.setItem('accounts', JSON.stringify(accounts)); }
+
+  /* =====================
+     Auth
+  ===================== */
+  const el = (id) => document.getElementById(id);
+  el('btnSignUp').addEventListener('click', signup);
+  el('btnSignIn').addEventListener('click', login);
+
+  function signup(){
+    const u = el('username').value.trim();
+    const p = el('password').value;
+    if(!u || !p) return alert('Enter username and password.');
+    if(accounts[u]) return alert('Account exists!');
+    accounts[u] = { password:p, points:0, inventory:[], themes:[], selectedTheme:'', dungeon:null };
+    saveData();
+    currentUser = u;
+    startGame();
   }
-  key(x,y){return x+","+y;}
-  generateRoom(rx,ry){
-    if(this.rooms[this.key(rx,ry)])return;
-    let map=[];let enemies=[];let items=[];
-    for(let y=0;y<mapSize;y++){
-      let row=[];
-      for(let x=0;x<mapSize;x++){
-        row.push(Math.random()<0.2?"#":".");
+  function login(){
+    const u = el('username').value.trim();
+    const p = el('password').value;
+    if(!accounts[u]) return alert('No account. Sign up first.');
+    if(accounts[u].password !== p) return alert('Wrong password.');
+    currentUser = u;
+    startGame();
+  }
+
+  /* =====================
+     Game Shell (Wheel/Inv/Theme)
+  ===================== */
+  el('btnSpin').addEventListener('click', spin);
+
+  function startGame(){
+    el('playerName').innerText = currentUser;
+    el('loginCard').classList.add('hidden');
+    el('gameBox').classList.remove('hidden');
+    updateUI();
+    // Start / resume dungeon immediately (always visible)
+    startDungeon();
+  }
+
+  function weightedRandom(items){
+    const total = items.reduce((s,i)=>s+i.weight,0);
+    let r = Math.random() * total;
+    for(const i of items){ if(r < i.weight) return i; r -= i.weight; }
+  }
+
+  function spin(){
+    const acc = accounts[currentUser];
+    if(acc.points < 5) return alert('Not enough points!');
+    acc.points -= 5;
+
+    const prize = weightedRandom(wheelPrizes);
+    const prizeDisplay = el('prizeDisplay');
+    const result = el('result');
+
+    let flips = 30, step = 0;
+    let interval = 50;
+    const anim = setInterval(()=>{
+      step++;
+      const fake = wheelPrizes[Math.floor(Math.random()*wheelPrizes.length)].name;
+      prizeDisplay.innerText = fake;
+      const scale = 1 + 0.2*Math.sin(step*0.8); // bouncy scale
+      prizeDisplay.style.transform = `scale(${scale})`;
+      if(step >= flips){
+        clearInterval(anim);
+        prizeDisplay.innerText = prize.name;
+        prizeDisplay.style.transform = 'scale(1)';
+        const acc = accounts[currentUser];
+        const already = acc.inventory.includes(prize.name) || acc.themes.includes(prize.name.split(' ')[0].toLowerCase());
+        if(already && prize.type !== 'points'){
+          acc.points += prize.refund || 5;
+          result.innerText = `Duplicate! Refunded ${prize.refund||5} pts.`;
+        } else {
+          if(prize.type === 'points') acc.points += prize.amount;
+          else if(prize.type === 'theme') acc.themes.push(prize.name.split(' ')[0].toLowerCase());
+          else acc.inventory.push(prize.name);
+          result.innerText = `🎉 You won: ${prize.name}`;
+        }
+        updateUI();
       }
-      map.push(row);
-    }
-    // keep center clear
-    map[7][7]=".";
-    // enemies
-    for(let i=0;i<2+this.level;i++){
-      enemies.push({x:Math.floor(Math.random()*mapSize),y:Math.floor(Math.random()*mapSize)});
-    }
-    // items
-    if(Math.random()<0.1)items.push({x:Math.floor(Math.random()*mapSize),y:Math.floor(Math.random()*mapSize),type:"life"});
-    if(Math.random()<0.3)items.push({x:Math.floor(Math.random()*mapSize),y:Math.floor(Math.random()*mapSize),type:"points"});
-    this.rooms[this.key(rx,ry)]={map,enemies,items};
+      interval += 10;
+    }, interval);
   }
-  currentRoom(){return this.rooms[this.key(this.player.roomX,this.player.roomY)];}
-  draw(){
-    let room=this.currentRoom();
-    this.ctx.fillStyle="black";this.ctx.fillRect(0,0,this.canvas.width,this.canvas.height);
-    for(let y=0;y<mapSize;y++){
-      for(let x=0;x<mapSize;x++){
-        this.ctx.fillStyle=room.map[y][x]==="#"?"gray":"black";
-        this.ctx.fillRect(x*tileSize,y*tileSize,tileSize,tileSize);
-      }
-    }
-    room.items.forEach(it=>{
-      this.ctx.fillStyle=it.type==="life"?"red":"gold";
-      this.ctx.fillRect(it.x*tileSize+8,it.y*tileSize+8,16,16);
+
+  function updateUI(){
+    const acc = accounts[currentUser];
+    el('points').innerText = acc.points;
+    // inventory
+    const inv = el('inventory'); inv.innerHTML = '';
+    acc.inventory.forEach((item,idx)=>{
+      const li = document.createElement('li'); li.textContent = item;
+      const del = document.createElement('button'); del.textContent = 'x'; del.className='delete-btn';
+      del.onclick = ()=>{ acc.inventory.splice(idx,1); updateUI(); };
+      li.appendChild(del); inv.appendChild(li);
     });
-    this.ctx.fillStyle="green";
-    room.enemies.forEach(e=>this.ctx.fillRect(e.x*tileSize+4,e.y*tileSize+4,24,24));
-    this.ctx.fillStyle="cyan";
-    this.ctx.fillRect(this.player.x*tileSize+4,this.player.y*tileSize+4,24,24);
-    this.ctx.fillStyle="white";this.ctx.fillText("Lives:"+this.lives+" Lvl:"+this.level,10,15);
-  }
-  move(dx,dy){
-    let room=this.currentRoom();
-    let nx=this.player.x+dx,ny=this.player.y+dy;
-    if(nx<0){this.player.roomX--;this.generateRoom(this.player.roomX,this.player.roomY);nx=mapSize-1;}
-    if(nx>=mapSize){this.player.roomX++;this.generateRoom(this.player.roomX,this.player.roomY);nx=0;}
-    if(ny<0){this.player.roomY--;this.generateRoom(this.player.roomX,this.player.roomY);ny=mapSize-1;}
-    if(ny>=mapSize){this.player.roomY++;this.generateRoom(this.player.roomX,this.player.roomY);ny=0;}
-    if(this.currentRoom().map[ny][nx]==="#")return;
-    this.player.x=nx;this.player.y=ny;
-    // check items
-    let newItems=[];
-    for(let it of this.currentRoom().items){
-      if(it.x===nx&&it.y===ny){
-        if(it.type==="life")this.lives++;
-        if(it.type==="points")accounts[this.user].points+=10;
-      } else newItems.push(it);
-    }
-    this.currentRoom().items=newItems;
-    // check enemies
-    for(let e of this.currentRoom().enemies){
-      if(e.x===nx&&e.y===ny){this.lives--;if(this.lives<=0)this.gameOver();}
-    }
-  }
-  moveEnemies(){
-    let room=this.currentRoom();
-    room.enemies.forEach(e=>{
-      let dir=[[1,0],[-1,0],[0,1],[0,-1]][Math.floor(Math.random()*4)];
-      let nx=e.x+dir[0],ny=e.y+dir[1];
-      if(nx>=0&&ny>=0&&nx<mapSize&&ny<mapSize&&room.map[ny][nx]==="."){e.x=nx;e.y=ny;}
-      if(nx===this.player.x&&ny===this.player.y){this.lives--;if(this.lives<=0)this.gameOver();}
+    // themes
+    const sel = el('themeSelect');
+    sel.innerHTML = "<option value=''>--Choose Theme--</option>";
+    acc.themes.forEach(t=>{
+      const opt = document.createElement('option'); opt.value=t; opt.innerText=t[0].toUpperCase()+t.slice(1)+" Theme";
+      if(t===acc.selectedTheme) opt.selected = true;
+      sel.appendChild(opt);
     });
-  }
-  attack(){
-    let room=this.currentRoom();
-    room.enemies=room.enemies.filter(e=>{
-      let dist=Math.abs(e.x-this.player.x)+Math.abs(e.y-this.player.y);
-      return dist>1;
-    });
-  }
-  handleInput(e){
-    if(e.key==="w")this.move(0,-1);
-    if(e.key==="s")this.move(0,1);
-    if(e.key==="a")this.move(-1,0);
-    if(e.key==="d")this.move(1,0);
-    if(e.key===" ")this.attack();
-  }
-  loop(){
-    if(!dungeonGame)return;
-    this.moveEnemies();
-    this.draw();
-    this.save();
-    requestAnimationFrame(()=>this.loop());
-  }
-  save(){
-    accounts[this.user].dungeon={lives:this.lives,player:this.player,rooms:this.rooms};
+    if(acc.selectedTheme) applyTheme(acc.selectedTheme);
+    else document.body.className = '';
     saveData();
   }
-  load(){
-    let save=accounts[this.user].dungeon;
-    if(save){this.lives=save.lives;this.player=save.player;this.rooms=save.rooms||{};}
-  }
-  gameOver(){
-    if(accounts[this.user].points>=100){
-      if(confirm("You died! Spend 100 points to revive?")){
-        accounts[this.user].points-=100;this.lives=3;
-      } else {this.reset();}
-    } else this.reset();
-  }
-  reset(){
-    alert("Progress lost!");accounts[this.user].dungeon=null;saveData();this.lives=3;this.player={x:7,y:7,roomX:0,roomY:0};this.rooms={};this.generateRoom(0,0);
-  }
-}
 
-function movePlayer(dx,dy){if(dungeonGame)dungeonGame.move(dx,dy);}
-function attack(){if(dungeonGame)dungeonGame.attack();}
+  el('themeSelect').addEventListener('change', (e)=>applyTheme(e.target.value));
+  function applyTheme(theme){
+    const acc = accounts[currentUser];
+    acc.selectedTheme = theme;
+    document.body.className = '';
+    if(theme) document.body.classList.add('theme-'+theme);
+    saveData();
+  }
 
-/* Hook into login */
-function startDungeon(){
-  dungeonGame=new DungeonGame(currentUser);
-}
+  // Teacher controls
+  el('teacherLoginBtn').addEventListener('click', showTeacherLogin);
+  function showTeacherLogin(){
+    if(teacherMode) return;
+    const code = prompt('Enter teacher code:');
+    if(code===TEACHER_SECRET){ teacherMode=true; el('teacherPanel').classList.remove('hidden'); el('teacherLoginBtn').classList.add('hidden'); }
+    else alert('Wrong code!');
+  }
+  el('btnAddPoints').addEventListener('click', ()=>{
+    const amt = parseInt(el('pointsToAdd').value);
+    if(teacherMode && amt>0){ accounts[currentUser].points += amt; updateUI(); alert('Added '+amt+' points!'); }
+    else alert('Enter a valid amount!');
+  });
+  el('btnTeacherLogout').addEventListener('click', ()=>{
+    teacherMode=false; el('teacherPanel').classList.add('hidden'); el('teacherLoginBtn').classList.remove('hidden');
+  });
 
+  /* =====================
+     Dungeon (Endless Rooms)
+  ===================== */
+  const tileSize = 32, mapSize = 15;
+  let dungeonGame = null;
+
+  class DungeonGame{
+    constructor(user){
+      this.user = user;
+      this.canvas = el('dungeonCanvas');
+      this.ctx = this.canvas.getContext('2d');
+      this.rooms = {}; // key: "x,y" => { map, enemies, items }
+      this.player = { x:7, y:7, roomX:0, roomY:0 };
+      this.lives = 3; this.level = 1;
+      this.fontInit();
+      this.load();
+      this.generateRoom(this.player.roomX, this.player.roomY);
+      this.alive = true; // used to stop old loops
+      window.addEventListener('keydown', this._keyHandler = (e)=>this.handleInput(e));
+      this.loop();
+      this.updateHUD();
+    }
+    fontInit(){ this.ctx.font = '14px monospace'; this.ctx.textBaseline = 'top'; }
+    key(x,y){ return x+','+y; }
+    generateRoom(rx,ry){
+      const k = this.key(rx,ry);
+      if(this.rooms[k]) return;
+      const map = []; const enemies = []; const items = [];
+      for(let y=0;y<mapSize;y++){
+        const row = [];
+        for(let x=0;x<mapSize;x++) row.push(Math.random()<0.2?'#':'.');
+        map.push(row);
+      }
+      // Carve paths at edges to guarantee connectivity between rooms
+      for(let i=0;i<mapSize;i++){ map[0][i]='.'; map[mapSize-1][i]='.'; map[i][0]='.'; map[i][mapSize-1]='.'; }
+      map[7][7]='.'; // keep center clear
+      // enemies scale with level
+      for(let i=0;i<2+this.level;i++) enemies.push({x:Math.floor(Math.random()*mapSize), y:Math.floor(Math.random()*mapSize)});
+      if(Math.random()<0.1) items.push({x:Math.floor(Math.random()*mapSize), y:Math.floor(Math.random()*mapSize), type:'life'});
+      if(Math.random()<0.3) items.push({x:Math.floor(Math.random()*mapSize), y:Math.floor(Math.random()*mapSize), type:'points'});
+      this.rooms[k] = { map, enemies, items };
+    }
+    currentRoom(){ return this.rooms[this.key(this.player.roomX, this.player.roomY)]; }
+    draw(){
+      const room = this.currentRoom();
+      const c = this.ctx;
+      c.fillStyle = 'black'; c.fillRect(0,0,this.canvas.width,this.canvas.height);
+      for(let y=0;y<mapSize;y++){
+        for(let x=0;x<mapSize;x++){
+          c.fillStyle = room.map[y][x]==='#' ? 'gray' : 'black';
+          c.fillRect(x*tileSize, y*tileSize, tileSize, tileSize);
+        }
+      }
+      // items
+      room.items.forEach(it=>{ c.fillStyle = it.type==='life' ? 'red' : 'gold'; c.fillRect(it.x*tileSize+8, it.y*tileSize+8, 16, 16); });
+      // enemies
+      c.fillStyle = 'green';
+      room.enemies.forEach(e=> c.fillRect(e.x*tileSize+4, e.y*tileSize+4, 24, 24));
+      // player
+      c.fillStyle = 'cyan'; c.fillRect(this.player.x*tileSize+4, this.player.y*tileSize+4, 24, 24);
+      // HUD text overlay (backup to DOM HUD)
+      c.fillStyle = 'white'; c.fillText(`Lives:${this.lives} Lvl:${this.level}`, 10, 10);
+    }
+    updateHUD(){
+      el('hudLives').innerText = this.lives;
+      el('hudLevel').innerText = this.level;
+      el('hudRoom').innerText = `${this.player.roomX},${this.player.roomY}`;
+    }
+    move(dx,dy){
+      let nx = this.player.x + dx, ny = this.player.y + dy;
+      // room transitions
+      if(nx < 0){ this.player.roomX--; this.generateRoom(this.player.roomX, this.player.roomY); nx = mapSize-1; this.levelUpMaybe(); }
+      if(nx >= mapSize){ this.player.roomX++; this.generateRoom(this.player.roomX, this.player.roomY); nx = 0; this.levelUpMaybe(); }
+      if(ny < 0){ this.player.roomY--; this.generateRoom(this.player.roomX, this.player.roomY); ny = mapSize-1; this.levelUpMaybe(); }
+      if(ny >= mapSize){ this.player.roomY++; this.generateRoom(this.player.roomX, this.player.roomY); ny = 0; this.levelUpMaybe(); }
+      const room = this.currentRoom();
+      if(room.map[ny][nx] === '#') return; // wall
+      this.player.x = nx; this.player.y = ny;
+      // items
+      let keep=[]; for(const it of room.items){
+        if(it.x===nx && it.y===ny){ if(it.type==='life') this.lives++; if(it.type==='points') accounts[this.user].points += 10; }
+        else keep.push(it);
+      } room.items = keep;
+      // enemies collision
+      for(const e of room.enemies){ if(e.x===nx && e.y===ny){ this.hit(); break; } }
+      this.updateHUD();
+    }
+    levelUpMaybe(){ this.level = Math.max(1, Math.floor((Math.abs(this.player.roomX)+Math.abs(this.player.roomY))/4)+1); this.updateHUD(); }
+    moveEnemies(){
+      const room = this.currentRoom();
+      room.enemies.forEach(e=>{
+        const dir = [[1,0],[-1,0],[0,1],[0,-1]][Math.floor(Math.random()*4)];
+        const nx = e.x + dir[0], ny = e.y + dir[1];
+        if(nx>=0 && ny>=0 && nx<mapSize && ny<mapSize && room.map[ny][nx]==='.') { e.x=nx; e.y=ny; }
+        if(nx===this.player.x && ny===this.player.y) this.hit();
+      });
+    }
+    hit(){ this.lives--; if(this.lives<=0) this.gameOver(); this.updateHUD(); }
+    attack(){
+      const room = this.currentRoom();
+      room.enemies = room.enemies.filter(e=>{ const dist=Math.abs(e.x-this.player.x)+Math.abs(e.y-this.player.y); return dist>1; });
+    }
+    handleInput(e){
+      if(e.key==='w' || e.key==='W') this.move(0,-1);
+      if(e.key==='s' || e.key==='S') this.move(0,1);
+      if(e.key==='a' || e.key==='A') this.move(-1,0);
+      if(e.key==='d' || e.key==='D') this.move(1,0);
+      if(e.key===' ') this.attack();
+    }
+    loop(){
+      if(!this.alive || dungeonGame !== this) return; // prevent ghost loops
+      this.moveEnemies();
+      this.draw();
+      this.save();
+      requestAnimationFrame(()=>this.loop());
+    }
+    save(){
+      const acc = accounts[this.user];
+      acc.dungeon = { lives:this.lives, player:this.player, rooms:this.rooms, level:this.level };
+      saveData();
+    }
+    load(){
+      const save = (accounts[this.user]||{}).dungeon;
+      if(save){ this.lives = save.lives; this.player = save.player; this.rooms = save.rooms||{}; this.level = save.level||1; }
+    }
+    destroy(){ this.alive = false; window.removeEventListener('keydown', this._keyHandler); }
+    gameOver(){
+      const acc = accounts[this.user];
+      if(acc.points >= 100){
+        if(confirm('You died! Spend 100 points to revive?')){ acc.points -= 100; this.lives = 3; }
+        else this.reset();
+      } else { alert("You died and don't have enough points. Progress lost!"); this.reset(); }
+      updateUI();
+    }
+    reset(){
+      const acc = accounts[this.user];
+      alert('Progress lost!');
+      acc.dungeon = null; saveData();
+      this.lives=3; this.player={x:7,y:7,roomX:0,roomY:0}; this.rooms={}; this.level=1; this.generateRoom(0,0); this.updateHUD();
+    }
+  }
+
+  // Controls wiring
+  el('btnAttack').addEventListener('click', ()=> dungeonGame && dungeonGame.attack());
+  el('btnMobileAttack').addEventListener('click', ()=> dungeonGame && dungeonGame.attack());
+  el('mobileControls').addEventListener('click', (e)=>{
+    const mv = e.target.getAttribute('data-move'); if(!mv) return; const [dx,dy] = mv.split(',').map(n=>parseInt(n,10));
+    if(dungeonGame) dungeonGame.move(dx,dy);
+  });
+
+  // Fullscreen
+  el('btnFS').addEventListener('click', ()=>{
+    const c = el('dungeonCanvas');
+    if(document.fullscreenElement){ document.exitFullscreen(); }
+    else { c.requestFullscreen().catch(()=> alert('Fullscreen not supported here.')); }
+  });
+
+  // Start/Resume dungeon helper
+  function startDungeon(){
+    if(!currentUser) return;
+    if(dungeonGame){ dungeonGame.destroy(); }
+    dungeonGame = new DungeonGame(currentUser);
+  }
+
+  // Persist on hide/close
+  document.addEventListener('visibilitychange', ()=>{ if(!currentUser || !dungeonGame) return; dungeonGame.save(); });
+  window.addEventListener('beforeunload', ()=>{ if(!currentUser || !dungeonGame) return; dungeonGame.save(); });
+
+  // Mobile detection
+  const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints>0);
+  if(isTouch) el('mobileControls').classList.remove('hidden');
+
+  /* =====================
+     Diagnostics / Tests
+  ===================== */
+  el('btnDiag').addEventListener('click', runDiagnostics);
+  function logDiag(msg){ const d=el('diag'); d.classList.remove('hidden'); const p=document.createElement('div'); p.textContent=msg; d.appendChild(p); d.scrollTop = d.scrollHeight; }
+
+  function runDiagnostics(){
+    el('diag').innerHTML='';
+    try{
+      // Test 1: DOM presence
+      const mustHave = ['loginCard','gameBox','playerName','points','wheelBox','inventory','themeSelect','dungeonCanvas'];
+      const missing = mustHave.filter(id=>!el(id));
+      if(missing.length) throw new Error('Missing DOM ids: '+missing.join(', '));
+      logDiag('✅ DOM elements present');
+
+      // Test 2: Accounts structure
+      if(typeof accounts !== 'object') throw new Error('accounts not object');
+      logDiag('✅ accounts object exists');
+
+      // Test 3: If logged in, dungeon state shape
+      if(currentUser){
+        if(!accounts[currentUser]) throw new Error('currentUser not in accounts');
+        logDiag('✅ currentUser exists in accounts');
+        if(!dungeonGame) startDungeon();
+        if(!dungeonGame.currentRoom()) throw new Error('currentRoom missing after start');
+        logDiag('✅ currentRoom available');
+        const before = JSON.stringify(accounts[currentUser].dungeon||{});
+        dungeonGame.save();
+        const after = JSON.stringify(JSON.parse(localStorage.getItem('accounts'))[currentUser].dungeon||{});
+        if(before!==after) logDiag('✅ save() writes to localStorage'); else logDiag('ℹ️ save() produced identical snapshot (ok)');
+      } else {
+        logDiag('ℹ️ Not logged in – auth flows not tested');
+      }
+
+      // Test 4: Room generation determinism of key
+      const k = `${Math.floor(Math.random()*5)},${Math.floor(Math.random()*5)}`; // e.g. "2,3"
+      const [rx,ry] = k.split(',').map(n=>parseInt(n,10));
+      if(!dungeonGame){ logDiag('ℹ️ No dungeonGame yet; creating temp for test'); dungeonGame = new DungeonGame('__temp__'); }
+      const beforeRooms = Object.keys(dungeonGame.rooms).length;
+      dungeonGame.generateRoom(rx,ry);
+      dungeonGame.generateRoom(rx,ry); // second time should be no-op
+      const afterRooms = Object.keys(dungeonGame.rooms).length;
+      if(afterRooms === beforeRooms+1) logDiag('✅ generateRoom is idempotent per key'); else throw new Error('generateRoom duplicated room');
+
+      logDiag('🎉 All diagnostics completed.');
+    } catch(err){ logDiag('❌ '+(err && err.message ? err.message : err)); }
+  }
+});
 </script>
 </body>
 </html>
