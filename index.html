@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Questwork</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #f4f4f4;
+      transition: background 0.5s, color 0.5s;
+    }
+    .hidden { display: none; }
+    .login-box, .game-box {
+      margin-top: 50px;
+      padding: 20px;
+      border: 2px solid #333;
+      border-radius: 10px;
+      background: white;
+      width: 300px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    button { margin: 5px; padding: 10px; }
+    #inventory { margin-top: 20px; text-align: left; }
+    .theme-dog { background: url('https://i.imgur.com/pXlUZ04.png'); color: brown; }
+    .theme-pirate { background: black; color: gold; }
+    .theme-neon { background: #0f0f0f; color: lime; }
+    .theme-spooky { background: purple; color: orange; }
+  </style>
+</head>
+<body>
+  <div class="login-box" id="loginBox">
+    <h2>Questwork Login</h2>
+    <input type="text" id="username" placeholder="Enter username"><br><br>
+    <input type="password" id="password" placeholder="Enter password"><br><br>
+    <button onclick="login()">Login</button>
+  </div>
+
+  <div class="game-box hidden" id="gameBox">
+    <h2>Welcome, <span id="playerName"></span>!</h2>
+    <p>Points: <span id="points">0</span></p>
+    <button onclick="spin('bronze')">Spin Bronze Wheel (5 pts)</button>
+    <button onclick="spin('silver')">Spin Silver Wheel (15 pts)</button>
+    <button onclick="spin('gold')">Spin Gold Wheel (50 pts)</button>
+    <p id="result"></p>
+
+    <h3>Inventory</h3>
+    <ul id="inventory"></ul>
+
+    <h3>Teacher Controls</h3>
+    <input type="password" id="teacherCode" placeholder="Enter teacher code">
+    <input type="number" id="pointsToAdd" placeholder="Points to add">
+    <button onclick="addPoints()">Add Points</button>
+  </div>
+
+  <script>
+    let accounts = JSON.parse(localStorage.getItem("accounts")) || {};
+    let currentUser = null;
+    const TEACHER_SECRET = "7545"; 
+
+    function login() {
+      const user = document.getElementById("username").value;
+      const pass = document.getElementById("password").value;
+      if (!user || !pass) { alert("Enter username & password"); return; }
+
+      if (!accounts[user]) {
+        accounts[user] = { password: pass, points: 0, inventory: [], themes: [] };
+      } else if (accounts[user].password !== pass) {
+        alert("Wrong password!");
+        return;
+      }
+
+      currentUser = user;
+      localStorage.setItem("accounts", JSON.stringify(accounts));
+      document.getElementById("playerName").innerText = user;
+      updateUI();
+      document.getElementById("loginBox").classList.add("hidden");
+      document.getElementById("gameBox").classList.remove("hidden");
+    }
+
+    function updateUI() {
+      const acc = accounts[currentUser];
+      document.getElementById("points").innerText = acc.points;
+      let inv = document.getElementById("inventory");
+      inv.innerHTML = "";
+      acc.inventory.forEach(item => {
+        let li = document.createElement("li");
+        li.innerText = item;
+        inv.appendChild(li);
+      });
+      acc.themes.forEach(t => { document.body.classList.add("theme-" + t); });
+      localStorage.setItem("accounts", JSON.stringify(accounts));
+    }
+
+    function spin(type) {
+      const acc = accounts[currentUser];
+      let cost = { bronze: 5, silver: 15, gold: 50 }[type];
+      if (acc.points < cost) { alert("Not enough points!"); return; }
+
+      acc.points -= cost;
+      let prize = getPrize(type);
+      acc.inventory.push(prize);
+
+      if (prize.includes("Theme")) {
+        let theme = prize.split(" ")[0].toLowerCase();
+        acc.themes.push(theme);
+        document.body.classList.add("theme-" + theme);
+      }
+
+      document.getElementById("result").innerText = "You won: " + prize;
+      updateUI();
+    }
+
+    function getPrize(type) {
+      const prizes = {
+        bronze: ["Sticker Pack", "Pencil Upgrade", "Dog Theme", "Nothing"],
+        silver: ["Pirate Theme", "Cool Hat", "1 Bonus Point", "Neon Theme"],
+        gold: ["Spooky Theme", "Golden Trophy", "VIP Badge", "50 Bonus Points"]
+      };
+      let list = prizes[type];
+      let prize = list[Math.floor(Math.random() * list.length)];
+
+      if (prize === "1 Bonus Point") accounts[currentUser].points += 1;
+      if (prize === "50 Bonus Points") accounts[currentUser].points += 50;
+
+      return prize;
+    }
+
+    function addPoints() {
+      let code = document.getElementById("teacherCode").value;
+      let amt = parseInt(document.getElementById("pointsToAdd").value);
+      if (code === TEACHER_SECRET && amt > 0) {
+        accounts[currentUser].points += amt;
+        updateUI();
+        alert("Added " + amt + " points!");
+      } else {
+        alert("Wrong teacher code!");
+      }
+    }
+  </script>
+</body>
+</html>
