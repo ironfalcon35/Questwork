@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Questwork 4.0</title>
+<title>Questwork 4.1</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
   body {
@@ -105,16 +105,24 @@
 <option value="">--Choose Theme--</option>
 </select>
 
-<h3>Teacher Controls</h3>
-<input type="password" id="teacherCode" placeholder="Enter teacher code">
-<input type="number" id="pointsToAdd" placeholder="Points to add">
-<button onclick="addPoints()">Add Points</button>
+<!-- Teacher section -->
+<button onclick="showTeacherLogin()">Teacher Login</button>
+<div id="teacherLogin" class="hidden">
+  <input type="password" id="teacherCodeInput" placeholder="Enter teacher code">
+  <button onclick="unlockTeacher()">Unlock</button>
+</div>
+
+<div id="teacherControls" class="hidden">
+  <h3>Teacher Controls</h3>
+  <input type="number" id="pointsToAdd" placeholder="Points to add">
+  <button onclick="addPoints()">Add Points</button>
+</div>
 </div>
 
 <script>
 const TEACHER_SECRET="QUEST123";
 
-// Single universal wheel with weights
+// Universal wheel prizes
 const wheelPrizes=[
   {name:"Sticker Pack",weight:4,refund:2},
   {name:"Dog Theme",weight:2,type:"theme"},
@@ -170,17 +178,17 @@ function spin(){
   let result=document.getElementById("result");
 
   let flips=30,step=0,interval=50;
-  let bounce=0;
   let anim=setInterval(()=>{
     step++;
     let fake=wheelPrizes[Math.floor(Math.random()*wheelPrizes.length)].name;
     prizeDisplay.innerText=fake;
-    prizeDisplay.style.transform=`translateY(${bounce}px)`;
-    bounce=Math.sin(step/2)*8;
+    // scale bounce instead of translate
+    let scale=1+Math.sin(step/2)*0.3; 
+    prizeDisplay.style.transform=`scale(${scale})`;
     if(step>=flips){
       clearInterval(anim);
       prizeDisplay.innerText=prize.name;
-      prizeDisplay.style.transform="translateY(0)";
+      prizeDisplay.style.transform="scale(1)";
       // duplicates
       let already=acc.inventory.includes(prize.name)||acc.themes.includes(prize.name.split(" ")[0].toLowerCase());
       if(already&&prize.type!=="points"){
@@ -228,11 +236,22 @@ function applyTheme(theme){
   saveData();
 }
 
+// Teacher controls
+function showTeacherLogin(){
+  document.getElementById("teacherLogin").classList.toggle("hidden");
+}
+function unlockTeacher(){
+  let code=document.getElementById("teacherCodeInput").value;
+  if(code===TEACHER_SECRET){
+    document.getElementById("teacherLogin").classList.add("hidden");
+    document.getElementById("teacherControls").classList.remove("hidden");
+  } else {
+    alert("Wrong code!");
+  }
+}
 function addPoints(){
-  let code=document.getElementById("teacherCode").value;
   let amt=parseInt(document.getElementById("pointsToAdd").value);
-  if(code===TEACHER_SECRET&&amt>0){accounts[currentUser].points+=amt;updateUI();alert("Added "+amt+" points!");}
-  else alert("Wrong teacher code!");
+  if(amt>0){accounts[currentUser].points+=amt;updateUI();alert("Added "+amt+" points!");}
 }
 </script>
 </body>
