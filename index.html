@@ -65,7 +65,8 @@
     align-items:center;
   }
   .prizeText{
-    font-size:1.4rem;font-weight:bold;transition:transform 0.1s;
+    font-size:1.4rem;font-weight:bold;
+    transition:transform 0.15s ease;
   }
   .theme-dog{background:url('https://i.imgur.com/9i5G79G.jpg') center/cover;}
   .theme-pirate{background:url('https://i.imgur.com/m5mG93q.jpeg') center/cover;}
@@ -75,6 +76,15 @@
     from{opacity:0;transform:translateY(10px);}
     to{opacity:1;transform:translateY(0);}
   }
+  /* Teacher section styles */
+  #teacherLoginBtn{
+    width:auto;
+    padding:6px 12px;
+    font-size:0.9rem;
+    margin-top:15px;
+    background:linear-gradient(135deg,#555,#999);
+  }
+  #teacherPanel{margin-top:20px;}
 </style>
 </head>
 <body>
@@ -105,24 +115,19 @@
 <option value="">--Choose Theme--</option>
 </select>
 
-<!-- Teacher section -->
-<button onclick="showTeacherLogin()">Teacher Login</button>
-<div id="teacherLogin" class="hidden">
-  <input type="password" id="teacherCodeInput" placeholder="Enter teacher code">
-  <button onclick="unlockTeacher()">Unlock</button>
-</div>
-
-<div id="teacherControls" class="hidden">
+<!-- Teacher toggle -->
+<button id="teacherLoginBtn" onclick="showTeacherLogin()">Teacher</button>
+<div id="teacherPanel" class="hidden">
   <h3>Teacher Controls</h3>
   <input type="number" id="pointsToAdd" placeholder="Points to add">
   <button onclick="addPoints()">Add Points</button>
+  <button onclick="logoutTeacher()">Log Out</button>
 </div>
 </div>
 
 <script>
 const TEACHER_SECRET="QUEST123";
 
-// Universal wheel prizes
 const wheelPrizes=[
   {name:"Sticker Pack",weight:4,refund:2},
   {name:"Dog Theme",weight:2,type:"theme"},
@@ -136,6 +141,8 @@ const wheelPrizes=[
 
 let accounts=JSON.parse(localStorage.getItem("accounts"))||{};
 let currentUser=null;
+let teacherMode=false;
+
 function saveData(){localStorage.setItem("accounts",JSON.stringify(accounts));}
 
 function signup(){
@@ -182,14 +189,14 @@ function spin(){
     step++;
     let fake=wheelPrizes[Math.floor(Math.random()*wheelPrizes.length)].name;
     prizeDisplay.innerText=fake;
-    // scale bounce instead of translate
-    let scale=1+Math.sin(step/2)*0.3; 
+    // scale bounce instead of vertical bounce
+    let scale=1+0.2*Math.sin(step*0.8);
     prizeDisplay.style.transform=`scale(${scale})`;
     if(step>=flips){
       clearInterval(anim);
       prizeDisplay.innerText=prize.name;
       prizeDisplay.style.transform="scale(1)";
-      // duplicates
+      let acc=accounts[currentUser];
       let already=acc.inventory.includes(prize.name)||acc.themes.includes(prize.name.split(" ")[0].toLowerCase());
       if(already&&prize.type!=="points"){
         acc.points+=prize.refund||5;
@@ -202,7 +209,7 @@ function spin(){
       }
       updateUI();
     }
-    interval+=10; // gradually slow down
+    interval+=10;
   },interval);
 }
 
@@ -236,22 +243,27 @@ function applyTheme(theme){
   saveData();
 }
 
-// Teacher controls
+/* Teacher controls */
 function showTeacherLogin(){
-  document.getElementById("teacherLogin").classList.toggle("hidden");
-}
-function unlockTeacher(){
-  let code=document.getElementById("teacherCodeInput").value;
+  if(teacherMode) return; // already logged in
+  let code=prompt("Enter teacher code:");
   if(code===TEACHER_SECRET){
-    document.getElementById("teacherLogin").classList.add("hidden");
-    document.getElementById("teacherControls").classList.remove("hidden");
+    teacherMode=true;
+    document.getElementById("teacherPanel").classList.remove("hidden");
+    document.getElementById("teacherLoginBtn").classList.add("hidden");
   } else {
     alert("Wrong code!");
   }
 }
 function addPoints(){
   let amt=parseInt(document.getElementById("pointsToAdd").value);
-  if(amt>0){accounts[currentUser].points+=amt;updateUI();alert("Added "+amt+" points!");}
+  if(teacherMode&&amt>0){accounts[currentUser].points+=amt;updateUI();alert("Added "+amt+" points!");}
+  else alert("Enter a valid amount!");
+}
+function logoutTeacher(){
+  teacherMode=false;
+  document.getElementById("teacherPanel").classList.add("hidden");
+  document.getElementById("teacherLoginBtn").classList.remove("hidden");
 }
 </script>
 </body>
