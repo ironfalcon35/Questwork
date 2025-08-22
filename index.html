@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Questwork 4.2</title>
+<title>Questwork 4.1</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
   body {
@@ -13,7 +13,7 @@
     min-height:100vh;
     display:flex;
     justify-content:center;
-    align-items:flex-start;
+    align-items:center;
     flex-direction:column;
     text-align:center;
     transition:background 0.5s ease;
@@ -25,14 +25,14 @@
     box-shadow:0 8px 20px rgba(0,0,0,0.4);
     max-width:550px;
     width:95%;
-    margin:10px auto;
+    margin:10px;
     animation:fadeIn 0.5s ease-in;
   }
   h2,h3{margin-top:0;color:#ffdd57;text-shadow:1px 1px 4px #000;}
   input,button,select{
     width:90%;padding:12px;margin:8px 0;border-radius:8px;border:none;font-size:1rem;outline:none;
   }
-  input{background:#f4f4f4;color:black;}
+  input{background:#f4f4f4;}
   button{
     background: linear-gradient(135deg,#ff6a00,#ee0979);
     color:white;font-weight:bold;cursor:pointer;transition:transform 0.2s,opacity 0.3s;
@@ -76,6 +76,7 @@
     from{opacity:0;transform:translateY(10px);}
     to{opacity:1;transform:translateY(0);}
   }
+  /* Teacher section styles */
   #teacherLoginBtn{
     width:auto;
     padding:6px 12px;
@@ -84,9 +85,20 @@
     background:linear-gradient(135deg,#555,#999);
   }
   #teacherPanel{margin-top:20px;}
-  /* Dungeon game styling */
-  #dungeonContainer{margin-top:20px;display:flex;flex-direction:column;align-items:center;}
-  #mobileControls button{margin:2px;padding:10px;font-size:1.2rem;}
+
+  /* Dungeon styles */
+  #dungeonContainer{margin-top:12px;}
+  #dungeonCanvas{display:block;margin:10px auto;border-radius:8px;background:#000;}
+  #dungeonHUD{display:flex;justify-content:space-between;align-items:center;margin:8px 6px;font-weight:bold;}
+  #mobileControls{display:flex;flex-direction:column;gap:6px;align-items:center;}
+  #mobileControls > div{display:flex;gap:6px;}
+  .smallBtn{padding:8px 12px;font-size:1rem;border-radius:8px;}
+  #dungeonOverlay{position:relative;}
+  #fullscreenBtn{position:absolute;right:6px;top:6px;padding:6px 10px;font-size:0.9rem;border-radius:6px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);}
+  /* Responsive */
+  @media (max-width:600px){
+    #dungeonCanvas{width:92vw;height:92vw;}
+  }
 </style>
 </head>
 <body>
@@ -109,22 +121,493 @@
 <div id="wheelBox"><div class="prizeText" id="prizeDisplay">?</div></div>
 <p id="result"></p>
 
+  <!-- Add this button under the wheel -->
 <button onclick="startDungeon()">Play Dungeon</button>
 
 <!-- Dungeon game container -->
 <div id="dungeonContainer" class="hidden">
-  <canvas id="dungeonCanvas" width="480" height="480" style="border:3px solid white"></canvas>
-  <div id="mobileControls" class="hidden">
-    <button onclick="movePlayer(0,-1)">⬆️</button>
-    <div>
-      <button onclick="movePlayer(-1,0)">⬅️</button>
-      <button onclick="movePlayer(1,0)">➡️</button>
+  <div id="dungeonOverlay">
+    <div id="dungeonHUD">
+      <div>Lives: <span id="dLives">0</span></div>
+      <div>Level: <span id="dLevel">0</span></div>
+      <div>Dungeon Score: <span id="dScore">0</span></div>
     </div>
-    <button onclick="movePlayer(0,1)">⬇️</button>
+    <button id="fullscreenBtn" onclick="toggleFullscreen()">⤢ Fullscreen</button>
+    <canvas id="dungeonCanvas" width="480" height="480" style="border:3px solid white"></canvas>
   </div>
-  <button onclick="exitDungeon()">Exit Dungeon</button>
-  <button onclick="toggleFullscreen()">Fullscreen</button>
+
+  <div id="mobileControls" class="hidden">
+    <button class="smallBtn" onclick="movePlayer(0,-1)">⬆️</button>
+    <div>
+      <button class="smallBtn" onclick="movePlayer(-1,0)">⬅️</button>
+      <button class="smallBtn" onclick="movePlayer(1,0)">➡️</button>
+    </div>
+    <button class="smallBtn" onclick="movePlayer(0,1)">⬇️</button>
+    <button class="smallBtn" onclick="attack()">⚔️</button>
+  </div>
+  <div style="margin-top:8px;display:flex;gap:8px;justify-content:center;">
+    <button onclick="exitDungeon()">Exit Dungeon</button>
+    <button onclick="teleportHome()" title="Quick restart room (costs no points)">Regenerate Room</button>
+  </div>
+  <p style="font-size:0.85rem;margin-top:8px;color:#ddd">Tip: collect golden squares for points, red hearts are rare extra lives, and blue orbs are temporary shields.</p>
 </div>
+
+<script>
+/* === Dungeon Game (UPGRADED) === */
+const tileSize=32;
+const mapSize=15; // 15x15
+let dungeonGame=null;
+const CONTINUE_COST = 200; // points to continue on death (big cost)
+const REPLAY_COST = 400;   // if you want to fully replay/reset but keep account points (optional flow)
+
+function startDungeon(){
+  if(!currentUser) return alert("Sign in first!");
+  document.getElementById("gameBox").classList.add("hidden");
+  document.getElementById("dungeonContainer").classList.remove("hidden");
+  // ensure account structure
+  if(!accounts[currentUser].dungeon){
+    accounts[currentUser].dungeon={
+      lives:3,
+      level:1,
+      score:0,
+      player:{x:7,y:7},
+      enemies:[],
+      items:[],
+      map:[],
+      lastSaved:Date.now()
+    };
+    saveData();
+  }
+  dungeonGame=new DungeonGame(currentUser);
+  // show mobile controls if touch device
+  if(('ontouchstart' in window) || navigator.maxTouchPoints>0){
+    document.getElementById("mobileControls").classList.remove("hidden");
+  } else {
+    document.getElementById("mobileControls").classList.add("hidden");
+  }
+}
+
+function exitDungeon(){
+  if(dungeonGame){
+    dungeonGame.destroy();
+    dungeonGame=null;
+  }
+  saveData();
+  document.getElementById("dungeonContainer").classList.add("hidden");
+  document.getElementById("gameBox").classList.remove("hidden");
+}
+
+function teleportHome(){
+  if(dungeonGame) dungeonGame.generateRoom(true);
+}
+
+/* Utility */
+function randInt(n){return Math.floor(Math.random()*n);}
+function sign(x){return x>0?1:(x<0?-1:0);}
+
+class DungeonGame{
+  constructor(user){
+    this.user=user;
+    this.canvas=document.getElementById("dungeonCanvas");
+    this.ctx=this.canvas.getContext("2d");
+    this.tile=tileSize;
+    this.mapSize=mapSize;
+    this.running=true;
+    this.loadFromAccount();
+    this.setupControls();
+    // start loop & autosave
+    this.lastSave=0;
+    this.loop();
+    this.autosaveInterval=setInterval(()=>this.save(),1000);
+  }
+
+  loadFromAccount(){
+    const save=accounts[this.user].dungeon || {};
+    // load or defaults
+    this.lives = save.lives ?? 3;
+    this.level = save.level ?? 1;
+    this.score = save.score ?? 0;
+    this.player = save.player ?? {x:7,y:7};
+    this.enemies = save.enemies ?? [];
+    this.items = save.items ?? [];
+    this.map = save.map && save.map.length ? save.map : [];
+    // if map empty, generate initial
+    if(!this.map.length){
+      this.generateRoom();
+    }
+    this.updateHUD();
+  }
+
+  save(){
+    accounts[this.user].dungeon = {
+      lives:this.lives,
+      level:this.level,
+      score:this.score,
+      player:this.player,
+      enemies:this.enemies,
+      items:this.items,
+      map:this.map,
+      lastSaved:Date.now()
+    };
+    saveData();
+  }
+
+  destroy(){
+    this.running=false;
+    window.removeEventListener("keydown",this._keyHandler);
+    clearInterval(this.autosaveInterval);
+    this.save();
+  }
+
+  setupControls(){
+    this._keyHandler = e=>{
+      if(e.repeat) return;
+      if(e.key==="w"||e.key==="ArrowUp") this.move(0,-1);
+      if(e.key==="s"||e.key==="ArrowDown") this.move(0,1);
+      if(e.key==="a"||e.key==="ArrowLeft") this.move(-1,0);
+      if(e.key==="d"||e.key==="ArrowRight") this.move(1,0);
+      if(e.key===" ") this.attack();
+    };
+    window.addEventListener("keydown",this._keyHandler);
+  }
+
+  generateRoom(preservePlayer=false){
+    // generate walkable corridors-ish map (cellular-ish)
+    const m=[];
+    for(let y=0;y<this.mapSize;y++){
+      m[y]=[];
+      for(let x=0;x<this.mapSize;x++){
+        // border walls
+        if(x===0||y===0||x===this.mapSize-1||y===this.mapSize-1){ m[y][x]="#"; continue; }
+        // create open-ish patterns
+        m[y][x] = Math.random()<0.18 ? "#" : ".";
+      }
+    }
+    // guarantee center area open
+    const cx=Math.floor(this.mapSize/2), cy=Math.floor(this.mapSize/2);
+    for(let dy=-2;dy<=2;dy++){
+      for(let dx=-2;dx<=2;dx++){
+        const sx=cx+dx, sy=cy+dy;
+        if(sx>0 && sy>0 && sx<this.mapSize-1 && sy<this.mapSize-1) m[sy][sx]=".";
+      }
+    }
+    // Place player at saved position if valid, else center
+    if(!preservePlayer || !this.isWalkable(this.player.x,this.player.y)){
+      this.player.x=cx; this.player.y=cy;
+    }
+    // enemies spawn based on level
+    const enemyCount = Math.max(2, 3 + Math.floor(this.level * 0.8));
+    const enemies=[];
+    let attempts=0;
+    while(enemies.length<enemyCount && attempts<500){
+      attempts++;
+      const ex=randInt(this.mapSize), ey=randInt(this.mapSize);
+      if(this.isWalkable(ex,ey) && !(ex===this.player.x && ey===this.player.y)){
+        enemies.push({x:ex,y:ey,shielded:false});
+      }
+    }
+    // items: rare extra life, somewhat more likely points, occasional power-ups
+    const items=[];
+    if(Math.random()<0.06) items.push({x:randInt(this.mapSize),y:randInt(this.mapSize),type:"life"});
+    if(Math.random()<0.4) items.push({x:randInt(this.mapSize),y:randInt(this.mapSize),type:"points",amount:10+randInt(41)});
+    if(Math.random()<0.12) items.push({x:randInt(this.mapSize),y:randInt(this.mapSize),type:"shield",duration:8}); // temporary shield
+    // ensure items are on walkable tiles and not overlapping player
+    this.items = items.filter(it=>this.isWalkable(it.x,it.y) && !(it.x===this.player.x && it.y===this.player.y));
+    this.enemies = enemies;
+    this.map = m;
+    // small chance to spawn a single VERY rare extra life later as roaming item (not on map)
+    if(Math.random()<0.02){
+      // spawn as item somewhere
+      let rx,ry,tries=0;
+      do{rx=randInt(this.mapSize);ry=randInt(this.mapSize);tries++;} while((!this.isWalkable(rx,ry) || (rx===this.player.x&&ry===this.player.y)) && tries<200);
+      if(tries<200) this.items.push({x:rx,y:ry,type:"life"});
+    }
+    this.updateHUD();
+  }
+
+  isWalkable(x,y){
+    return x>=0 && y>=0 && x<this.mapSize && y<this.mapSize && this.map[y][x] === ".";
+  }
+
+  draw(){
+    const ctx=this.ctx, ts=this.tile;
+    // scale canvas to fit CSS size if responsive
+    // clear
+    ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
+    // background
+    ctx.fillStyle="#000"; ctx.fillRect(0,0,this.canvas.width,this.canvas.height);
+
+    // draw tiles
+    for(let y=0;y<this.mapSize;y++){
+      for(let x=0;x<this.mapSize;x++){
+        if(this.map[y][x]==="#"){
+          ctx.fillStyle="#444"; ctx.fillRect(x*ts,y*ts,ts,ts);
+        } else {
+          ctx.fillStyle="#0b0b0b"; ctx.fillRect(x*ts,y*ts,ts,ts);
+          // subtle grid
+          ctx.strokeStyle="rgba(255,255,255,0.02)";
+          ctx.strokeRect(x*ts,y*ts,ts,ts);
+        }
+      }
+    }
+
+    // items
+    for(const it of this.items){
+      if(it.type==="life"){
+        ctx.fillStyle="red";
+        ctx.beginPath(); ctx.arc(it.x*ts+ts/2, it.y*ts+ts/2, ts*0.28, 0, Math.PI*2); ctx.fill();
+      } else if(it.type==="points"){
+        ctx.fillStyle="gold";
+        ctx.fillRect(it.x*ts+ts*0.2, it.y*ts+ts*0.2, ts*0.6, ts*0.6);
+      } else if(it.type==="shield"){
+        ctx.fillStyle="deepskyblue";
+        ctx.beginPath(); ctx.arc(it.x*ts+ts/2, it.y*ts+ts/2, ts*0.24, 0, Math.PI*2); ctx.fill();
+      }
+    }
+
+    // enemies
+    for(const e of this.enemies){
+      ctx.fillStyle = e.shielded ? "orange" : "lime";
+      ctx.fillRect(e.x*ts+ts*0.08, e.y*ts+ts*0.08, ts*0.84, ts*0.84);
+    }
+
+    // player
+    ctx.fillStyle = (this.playerShieldActive? "cyan" : "#00ffff");
+    ctx.fillRect(this.player.x*ts+ts*0.08, this.player.y*ts+ts*0.08, ts*0.84, ts*0.84);
+    // HUD text overlay handled via DOM to keep crisp
+  }
+
+  updateHUD(){
+    document.getElementById("dLives").innerText=this.lives;
+    document.getElementById("dLevel").innerText=this.level;
+    document.getElementById("dScore").innerText=this.score;
+    document.getElementById("points").innerText = accounts[this.user].points;
+  }
+
+  move(dx,dy){
+    if(!this.running) return;
+    const nx=this.player.x+dx, ny=this.player.y+dy;
+    if(nx<0||ny<0||nx>=this.mapSize||ny>=this.mapSize) return;
+    if(this.map[ny][nx]==="#") return;
+    this.player.x=nx; this.player.y=ny;
+    // check items
+    this.items = this.items.filter(it=>{
+      if(it.x===nx && it.y===ny){
+        if(it.type==="life"){
+          this.lives++;
+          this.score += 25;
+          accounts[this.user].points += 5; // small bonus to account
+        } else if(it.type==="points"){
+          const amt = it.amount || 10;
+          this.score += amt;
+          accounts[this.user].points += amt;
+        } else if(it.type==="shield"){
+          this.playerShieldActive=true;
+          this.playerShieldUntil = Date.now() + ((it.duration || 8) * 1000);
+        }
+        this.updateHUD();
+        return false; // removed
+      }
+      return true;
+    });
+
+    // check collision with enemies currently on tile
+    for(const e of this.enemies){
+      if(e.x===nx && e.y===ny){
+        // if player shield active, destroy enemy instead
+        if(this.playerShieldActive){
+          this.enemies = this.enemies.filter(x=>x!==e);
+          this.score += 10;
+          accounts[this.user].points += 2;
+          this.updateHUD();
+        } else {
+          this.lives--;
+          this.updateHUD();
+          if(this.lives<=0){ this.handleDeath(); return; }
+        }
+      }
+    }
+  }
+
+  attack(){
+    // clear adjacent enemies (manhattan distance 1)
+    const before = this.enemies.length;
+    this.enemies = this.enemies.filter(e=>{
+      const dist = Math.abs(e.x - this.player.x) + Math.abs(e.y - this.player.y);
+      if(dist<=1){
+        this.score += 8; accounts[this.user].points += 2;
+        return false; // removed
+      }
+      return true;
+    });
+    if(this.enemies.length < before) this.updateHUD();
+  }
+
+  moveEnemies(){
+    // Each enemy moves one step towards player (simple greedy) but respects walls.
+    for(const e of this.enemies){
+      // occasionally make an enemy 'dumb' and move randomly
+      if(Math.random()<0.12){
+        const dir = [[1,0],[-1,0],[0,1],[0,-1]][randInt(4)];
+        const nx=e.x+dir[0], ny=e.y+dir[1];
+        if(this.isWalkable(nx,ny) && !(nx===this.player.x && ny===this.player.y)){
+          e.x=nx; e.y=ny;
+        }
+        // if moves onto player
+        if(e.x===this.player.x && e.y===this.player.y){
+          this.resolveEnemyCollision(e);
+        }
+        continue;
+      }
+
+      const dx = this.player.x - e.x, dy = this.player.y - e.y;
+      // prefer longer axis
+      let stepX = 0, stepY = 0;
+      if(Math.abs(dx) >= Math.abs(dy)) stepX = sign(dx);
+      else stepY = sign(dy);
+      // try preferred move, fallback to other axis, fallback to random
+      let tried=false;
+      if(stepX!==0){
+        if(this.isWalkable(e.x+stepX,e.y) && !(e.x+stepX===e.x && e.y===this.player.y)){
+          e.x+=stepX; tried=true;
+        }
+      }
+      if(!tried && stepY!==0){
+        if(this.isWalkable(e.x,e.y+stepY)){
+          e.y+=stepY; tried=true;
+        }
+      }
+      if(!tried){
+        const dir = [[1,0],[-1,0],[0,1],[0,-1]][randInt(4)];
+        if(this.isWalkable(e.x+dir[0], e.y+dir[1])){
+          e.x+=dir[0]; e.y+=dir[1];
+        }
+      }
+      // collision with player
+      if(e.x===this.player.x && e.y===this.player.y){
+        this.resolveEnemyCollision(e);
+      }
+    }
+  }
+
+  resolveEnemyCollision(e){
+    if(this.playerShieldActive){
+      // shield destroys enemy
+      this.enemies = this.enemies.filter(x=>x!==e);
+      this.score += 10; accounts[this.user].points += 2;
+      this.updateHUD();
+      return;
+    }
+    this.lives--;
+    this.updateHUD();
+    if(this.lives<=0){ this.handleDeath(); return; }
+  }
+
+  handleDeath(){
+    // pause running
+    this.running=false;
+    this.save(); // ensure latest saved
+    // Offer costly continue if player has enough account points
+    const acc=accounts[this.user];
+    if(acc.points >= CONTINUE_COST){
+      const want = confirm(`You died! Spend ${CONTINUE_COST} points to continue (keeps your dungeon progress)?`);
+      if(want){
+        acc.points -= CONTINUE_COST;
+        this.lives = 3;
+        this.running=true;
+        this.updateHUD();
+        this.save();
+        return;
+      }
+    }
+    // Offer expensive replay (reset dungeon but let them play again from scratch) if they have enough
+    if(acc.points >= REPLAY_COST){
+      const want2 = confirm(`You died! Spend ${REPLAY_COST} points to replay (reset dungeon to level 1)?`);
+      if(want2){
+        acc.points -= REPLAY_COST;
+        // reset dungeon progress
+        accounts[this.user].dungeon = null;
+        saveData();
+        alert("Dungeon reset. You can re-enter to start fresh.");
+        exitDungeon();
+        return;
+      }
+    }
+    // No continue spent: lose dungeon progress completely
+    alert("You died and didn't continue. Dungeon progress lost.");
+    accounts[this.user].dungeon = null;
+    saveData();
+    exitDungeon();
+  }
+
+  checkProgression(){
+    // If all enemies cleared, advance level & generate new room
+    if(this.enemies.length===0){
+      this.level++;
+      // reward points for clearing
+      this.score += 30 + randInt(30);
+      accounts[this.user].points += 15 + randInt(10);
+      this.generateRoom(true); // preserve player at center-ish
+    }
+  }
+
+  loop(){
+    if(!this.running) return;
+    // enemy moves occasionally (throttle)
+    if(!this._lastEnemyMove || Date.now() - this._lastEnemyMove > Math.max(350 - this.level*10, 120)){
+      this.moveEnemies();
+      this._lastEnemyMove = Date.now();
+    }
+    // shield expiration
+    if(this.playerShieldActive && Date.now() > this.playerShieldUntil){
+      this.playerShieldActive = false;
+    }
+    // occasionally spawn tiny items
+    if(Math.random()<0.008){
+      // spawn a small points item somewhere walkable
+      let rx,ry,tries=0;
+      do{rx=randInt(this.mapSize);ry=randInt(this.mapSize);tries++;} while((!this.isWalkable(rx,ry) || (rx===this.player.x&&ry===this.player.y)) && tries<200);
+      if(tries<200) this.items.push({x:rx,y:ry,type:"points",amount:5+randInt(11)});
+    }
+    // draw & update
+    this.draw();
+    this.checkProgression();
+    this.saveIfNeeded();
+    this.updateHUD();
+    // loop
+    if(this.running) requestAnimationFrame(()=>this.loop());
+  }
+
+  saveIfNeeded(){
+    if(Date.now() - (this.lastSave||0) > 1000){
+      this.save();
+      this.lastSave = Date.now();
+    }
+  }
+}
+
+/* External helper functions used by buttons/DOM */
+function movePlayer(dx,dy){ if(dungeonGame) dungeonGame.move(dx,dy); }
+function attack(){ if(dungeonGame) dungeonGame.attack(); }
+
+function toggleFullscreen(){
+  const el = document.getElementById("dungeonCanvas");
+  if(!document.fullscreenElement){
+    if(el.requestFullscreen) el.requestFullscreen();
+    else if(el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+  } else {
+    if(document.exitFullscreen) document.exitFullscreen();
+    else if(document.webkitExitFullscreen) document.webkitExitFullscreen();
+  }
+}
+
+// small helper to keep UI points in sync if points changed outside game
+setInterval(()=>{
+  if(currentUser) document.getElementById("points").innerText = accounts[currentUser].points;
+},1000);
+
+</script>
+
 
 <h3>Inventory</h3>
 <ul id="inventory"></ul>
@@ -134,6 +617,7 @@
 <option value="">--Choose Theme--</option>
 </select>
 
+<!-- Teacher toggle -->
 <button id="teacherLoginBtn" onclick="showTeacherLogin()">Teacher</button>
 <div id="teacherPanel" class="hidden">
   <h3>Teacher Controls</h3>
@@ -144,172 +628,8 @@
 </div>
 
 <script>
-/* ========================== Dungeon Game ========================== */
-const tileSize=32;
-const mapSize=15;
-let dungeonGame=null;
-
-function startDungeon(){
-  document.getElementById("gameBox").classList.add("hidden");
-  document.getElementById("dungeonContainer").classList.remove("hidden");
-  if(!accounts[currentUser].dungeon){
-    accounts[currentUser].dungeon={lives:3,points:0,level:1};
-  }
-  dungeonGame=new DungeonGame(currentUser);
-  if(/Mobi|Android/i.test(navigator.userAgent)){
-    document.getElementById("mobileControls").classList.remove("hidden");
-  }
-}
-
-function exitDungeon(){
-  dungeonGame=null;
-  saveData();
-  document.getElementById("dungeonContainer").classList.add("hidden");
-  document.getElementById("gameBox").classList.remove("hidden");
-}
-
-function toggleFullscreen(){
-  const canvas=document.getElementById("dungeonCanvas");
-  if(!document.fullscreenElement){
-    canvas.requestFullscreen();
-  } else {document.exitFullscreen();}
-}
-
-class DungeonGame{
-  constructor(user){
-    this.user=user;
-    this.canvas=document.getElementById("dungeonCanvas");
-    this.ctx=this.canvas.getContext("2d");
-    this.map=[];
-    this.player={x:7,y:7};
-    this.enemies=[];
-    this.items=[];
-    this.load();
-    this.generateRoom();
-    this.loop();
-    this.keyDownHandler=e=>this.handleInput(e);
-    window.addEventListener("keydown",this.keyDownHandler);
-  }
-  load(){
-    let save=accounts[this.user].dungeon;
-    this.lives=save.lives;
-    this.level=save.level;
-  }
-  save(){
-    accounts[this.user].dungeon={lives:this.lives,level:this.level};
-    saveData();
-  }
-  generateRoom(){
-    this.map=[];
-    for(let y=0;y<mapSize;y++){
-      let row=[];
-      for(let x=0;x<mapSize;x++){
-        row.push(Math.random()<0.2?"#":".");
-      }
-      this.map.push(row);
-    }
-    this.map[this.player.y][this.player.x]=".";
-    // Enemies
-    this.enemies=[];
-    for(let i=0;i<3+this.level;i++){
-      this.enemies.push({x:Math.floor(Math.random()*mapSize),y:Math.floor(Math.random()*mapSize)});
-    }
-    // Items
-    this.items=[];
-    if(Math.random()<0.25)this.items.push({x:Math.floor(Math.random()*mapSize),y:Math.floor(Math.random()*mapSize),type:"life"});
-    if(Math.random()<0.4)this.items.push({x:Math.floor(Math.random()*mapSize),y:Math.floor(Math.random()*mapSize),type:"points"});
-    if(Math.random()<0.05)this.items.push({x:Math.floor(Math.random()*mapSize),y:Math.floor(Math.random()*mapSize),type:"extraLife"});
-  }
-  draw(){
-    this.ctx.fillStyle="black";this.ctx.fillRect(0,0,this.canvas.width,this.canvas.height);
-    for(let y=0;y<mapSize;y++){
-      for(let x=0;x<mapSize;x++){
-        this.ctx.fillStyle=this.map[y][x]==="#"?"gray":"black";
-        this.ctx.fillRect(x*tileSize,y*tileSize,tileSize,tileSize);
-      }
-    }
-    // Items
-    this.items.forEach(it=>{
-      this.ctx.fillStyle=it.type==="life"?"red":it.type==="points"?"gold":"magenta";
-      this.ctx.fillRect(it.x*tileSize+8,it.y*tileSize+8,16,16);
-    });
-    // Enemies
-    this.ctx.fillStyle="green";
-    this.enemies.forEach(e=>this.ctx.fillRect(e.x*tileSize+4,e.y*tileSize+4,24,24));
-    // Player
-    this.ctx.fillStyle="cyan";
-    this.ctx.fillRect(this.player.x*tileSize+4,this.player.y*tileSize+4,24,24);
-    // HUD
-    this.ctx.fillStyle="white";
-    this.ctx.font="16px Arial";
-    this.ctx.fillText(`Lives:${this.lives} Level:${this.level} Points:${accounts[this.user].points}`,10,16);
-  }
-  move(dx,dy){
-    let nx=this.player.x+dx,ny=this.player.y+dy;
-    if(nx<0||ny<0||nx>=mapSize||ny>=mapSize)return;
-    if(this.map[ny][nx]==="#")return;
-    this.player.x=nx;this.player.y=ny;
-
-    // Check items
-    this.items=this.items.filter(it=>{
-      if(it.x===nx&&it.y===ny){
-        if(it.type==="life")this.lives++;
-        else if(it.type==="points")accounts[this.user].points+=10;
-        else if(it.type==="extraLife"){this.lives++;accounts[this.user].points+=50;}
-        return false;
-      }
-      return true;
-    });
-    // Check enemies
-    for(let e of this.enemies){
-      if(e.x===nx&&e.y===ny){
-        this.lives--;
-        if(this.lives<=0){this.gameOver();return;}
-      }
-    }
-  }
-  handleInput(e){
-    if(e.key==="w")this.move(0,-1);
-    if(e.key==="s")this.move(0,1);
-    if(e.key==="a")this.move(-1,0);
-    if(e.key==="d")this.move(1,0);
-  }
-  moveEnemies(){
-    this.enemies.forEach(e=>{
-      let dir=[[1,0],[-1,0],[0,1],[0,-1]][Math.floor(Math.random()*4)];
-      let nx=e.x+dir[0],ny=e.y+dir[1];
-      if(nx>=0&&ny>=0&&nx<mapSize&&ny<mapSize&&this.map[ny][nx]==="."){e.x=nx;e.y=ny;}
-      if(e.x===this.player.x&&e.y===this.player.y){
-        this.lives--;
-        if(this.lives<=0)this.gameOver();
-      }
-    });
-  }
-  loop(){
-    if(!dungeonGame)return;
-    this.moveEnemies();
-    this.draw();
-    this.save();
-    requestAnimationFrame(()=>this.loop());
-  }
-  gameOver(){
-    if(accounts[this.user].points>=100){
-      if(confirm("You died! Spend 100 points to revive?")){
-        accounts[this.user].points-=100;
-        this.lives=3;
-        return;
-      }
-    }
-    alert("You died! Progress lost!");
-    accounts[this.user].dungeon=null;
-    exitDungeon();
-  }
-}
-
-function movePlayer(dx,dy){if(dungeonGame)dungeonGame.move(dx,dy);}
-
-/* ========================== Existing Code (Login/Wheel/Inventory) ========================== */
 const TEACHER_SECRET="QUEST123";
+
 const wheelPrizes=[
   {name:"Sticker Pack",weight:4,refund:2},
   {name:"Dog Theme",weight:2,type:"theme"},
@@ -320,6 +640,7 @@ const wheelPrizes=[
   {name:"1 Bonus Point",weight:2,type:"points",amount:1},
   {name:"50 Bonus Points",weight:1,type:"points",amount:50}
 ];
+
 let accounts=JSON.parse(localStorage.getItem("accounts"))||{};
 let currentUser=null;
 let teacherMode=false;
@@ -370,6 +691,7 @@ function spin(){
     step++;
     let fake=wheelPrizes[Math.floor(Math.random()*wheelPrizes.length)].name;
     prizeDisplay.innerText=fake;
+    // scale bounce instead of vertical bounce
     let scale=1+0.2*Math.sin(step*0.8);
     prizeDisplay.style.transform=`scale(${scale})`;
     if(step>=flips){
@@ -425,14 +747,26 @@ function applyTheme(theme){
 
 /* Teacher controls */
 function showTeacherLogin(){
-  if(teacherMode) return;
+  if(teacherMode) return; // already logged in
   let code=prompt("Enter teacher code:");
   if(code===TEACHER_SECRET){
     teacherMode=true;
     document.getElementById("teacherPanel").classList.remove("hidden");
     document.getElementById("teacherLoginBtn").classList.add("hidden");
-  } else { alert("Wrong code!"); }
+  } else {
+    alert("Wrong code!");
+  }
 }
 function addPoints(){
   let amt=parseInt(document.getElementById("pointsToAdd").value);
-  if(teacherMode&&amt>0){accounts[currentUser
+  if(teacherMode&&amt>0){accounts[currentUser].points+=amt;updateUI();alert("Added "+amt+" points!");}
+  else alert("Enter a valid amount!");
+}
+function logoutTeacher(){
+  teacherMode=false;
+  document.getElementById("teacherPanel").classList.add("hidden");
+  document.getElementById("teacherLoginBtn").classList.remove("hidden");
+}
+</script>
+</body>
+</html>
