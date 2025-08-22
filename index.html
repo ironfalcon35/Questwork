@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Questwork</title>
+  <title>Questwork 2.0</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
@@ -14,6 +14,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
+      flex-direction: column;
     }
 
     .card {
@@ -21,14 +22,15 @@
       padding: 20px;
       border-radius: 12px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      max-width: 400px;
-      width: 90%;
+      max-width: 500px;
+      width: 95%;
       text-align: center;
       animation: fadeIn 0.5s ease-in;
+      margin: 10px;
     }
 
     h2 { margin-top: 0; }
-    input, button {
+    input, button, select {
       width: 90%;
       padding: 10px;
       margin: 8px 0;
@@ -36,7 +38,6 @@
       border: 1px solid #aaa;
       font-size: 1rem;
     }
-
     button {
       background: #2575fc;
       color: white;
@@ -48,12 +49,6 @@
 
     .hidden { display: none; }
 
-    #gameBox {
-      width: 95%;
-      max-width: 600px;
-      margin: auto;
-    }
-
     #inventory {
       text-align: left;
       padding: 0;
@@ -64,6 +59,28 @@
       margin: 4px 0;
       padding: 6px;
       border-radius: 6px;
+    }
+
+    /* Wheel animation box */
+    #wheelBox {
+      margin: 20px auto;
+      width: 200px;
+      height: 200px;
+      border: 6px solid #333;
+      border-radius: 50%;
+      position: relative;
+      overflow: hidden;
+    }
+    .wheel {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      transform: rotate(0deg);
+      transition: transform 4s cubic-bezier(0.2, 0.8, 0.3, 1);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: bold;
     }
 
     /* Themes */
@@ -79,36 +96,31 @@
   </style>
 </head>
 <body>
-  <!-- Sign Up -->
-  <div class="card" id="signupBox">
-    <h2>Questwork Sign Up</h2>
-    <input type="text" id="newUsername" placeholder="Choose a username">
-    <input type="password" id="newPassword" placeholder="Choose a password">
-    <button onclick="signup()">Sign Up</button>
-    <p>Already have an account? <a href="#" onclick="switchToLogin()">Sign In</a></p>
-  </div>
-
-  <!-- Login -->
-  <div class="card hidden" id="loginBox">
+  <!-- Login / Signup -->
+  <div class="card" id="loginCard">
     <h2>Questwork Login</h2>
     <input type="text" id="username" placeholder="Username">
     <input type="password" id="password" placeholder="Password">
+    <button onclick="signup()">Sign Up</button>
     <button onclick="login()">Sign In</button>
-    <p>Forgot details? <a href="#" onclick="resetWithTeacher()">Teacher Reset</a></p>
-    <p>New here? <a href="#" onclick="switchToSignup()">Sign Up</a></p>
   </div>
 
   <!-- Game -->
   <div class="card hidden" id="gameBox">
     <h2>Welcome, <span id="playerName"></span>!</h2>
     <p>Points: <span id="points">0</span></p>
-    <button onclick="spin('bronze')">Spin Bronze Wheel (5 pts)</button>
-    <button onclick="spin('silver')">Spin Silver Wheel (15 pts)</button>
-    <button onclick="spin('gold')">Spin Gold Wheel (50 pts)</button>
+
+    <div id="wheelButtons"></div>
+    <div id="wheelBox"><div class="wheel" id="wheelSpin">?</div></div>
     <p id="result"></p>
 
     <h3>Inventory</h3>
     <ul id="inventory"></ul>
+
+    <h3>Theme Selector</h3>
+    <select id="themeSelect" onchange="applyTheme(this.value)">
+      <option value="">--Choose Theme--</option>
+    </select>
 
     <h3>Teacher Controls</h3>
     <input type="password" id="teacherCode" placeholder="Enter teacher code">
@@ -117,46 +129,137 @@
   </div>
 
   <script>
+    // --- CONFIG 
+    const TEACHER_SECRET = "7545"; 
+
+    const wheels = {
+      bronze: {
+        cost: 5,
+        refund: 3,
+        prizes: [
+          { name: "Sticker Pack", refund: 2 },
+          { name: "Dog Theme", type: "theme" },
+          { name: "Pencil Upgrade" },
+          { name: "Nothing" }
+        ]
+      },
+      silver: {
+        cost: 15,
+        refund: 8,
+        prizes: [
+          { name: "Pirate Theme", type: "theme" },
+          { name: "Cool Hat" },
+          { name: "1 Bonus Point", type: "points", amount: 1 },
+          { name: "Neon Theme", type: "theme" }
+        ]
+      },
+      gold: {
+        cost: 50,
+        refund: 25,
+        prizes: [
+          { name: "Spooky Theme", type: "theme" },
+          { name: "Golden Trophy" },
+          { name: "VIP Badge" },
+          { name: "50 Bonus Points", type: "points", amount: 50 }
+        ]
+      }
+    };
+
+    // --- DATA ---
     let accounts = JSON.parse(localStorage.getItem("accounts")) || {};
     let currentUser = null;
-    const TEACHER_SECRET = "7545"; 
 
     function saveData() {
       localStorage.setItem("accounts", JSON.stringify(accounts));
     }
 
+    // --- LOGIN / SIGNUP ---
     function signup() {
-      let user = document.getElementById("newUsername").value;
-      let pass = document.getElementById("newPassword").value;
-      if (!user || !pass) { alert("Fill in all fields"); return; }
-      if (accounts[user]) { alert("Username already exists!"); return; }
-      accounts[user] = { password: pass, points: 0, inventory: [], themes: [] };
+      let user = document.getElementById("username").value;
+      let pass = document.getElementById("password").value;
+      if (!user || !pass) return alert("Enter username and password.");
+      if (accounts[user]) return alert("Account already exists!");
+      accounts[user] = { password: pass, points: 0, inventory: [], themes: [], selectedTheme: "" };
       saveData();
-      alert("Account created! You can now sign in.");
-      switchToLogin();
+      alert("Account created! Now log in.");
     }
 
     function login() {
       let user = document.getElementById("username").value;
       let pass = document.getElementById("password").value;
-      if (!user || !pass) { alert("Enter username and password"); return; }
-      if (!accounts[user]) { alert("No account found. Sign up first."); return; }
-      if (accounts[user].password !== pass) { alert("Wrong password"); return; }
+      if (!accounts[user]) return alert("No account. Please sign up.");
+      if (accounts[user].password !== pass) return alert("Wrong password.");
       currentUser = user;
       startGame();
     }
 
+    // --- GAME START ---
     function startGame() {
       document.getElementById("playerName").innerText = currentUser;
+      buildWheelButtons();
       updateUI();
-      document.getElementById("signupBox").classList.add("hidden");
-      document.getElementById("loginBox").classList.add("hidden");
+      document.getElementById("loginCard").classList.add("hidden");
       document.getElementById("gameBox").classList.remove("hidden");
     }
 
+    function buildWheelButtons() {
+      let container = document.getElementById("wheelButtons");
+      container.innerHTML = "";
+      for (let w in wheels) {
+        let btn = document.createElement("button");
+        btn.innerText = `Spin ${w} Wheel (${wheels[w].cost} pts)`;
+        btn.onclick = () => spin(w);
+        container.appendChild(btn);
+      }
+    }
+
+    // --- SPINNING ---
+    function spin(type) {
+      let acc = accounts[currentUser];
+      let wheel = wheels[type];
+      if (acc.points < wheel.cost) return alert("Not enough points!");
+
+      acc.points -= wheel.cost;
+
+      // Pick random prize
+      let prize = wheel.prizes[Math.floor(Math.random() * wheel.prizes.length)];
+      let already = acc.inventory.includes(prize.name) || acc.themes.includes(prize.name.split(" ")[0].toLowerCase());
+
+      // Handle duplicates
+      if (already && prize.type !== "points") {
+        acc.points += prize.refund || wheel.refund;
+        document.getElementById("result").innerText = `Duplicate! Refunded ${prize.refund || wheel.refund} pts.`;
+        updateUI();
+        return;
+      }
+
+      // Handle prize types
+      if (prize.type === "points") acc.points += prize.amount;
+      else if (prize.type === "theme") {
+        let themeKey = prize.name.split(" ")[0].toLowerCase();
+        acc.themes.push(themeKey);
+      } else acc.inventory.push(prize.name);
+
+      // Animate wheel
+      let wheelEl = document.getElementById("wheelSpin");
+      wheelEl.style.transition = "none";
+      wheelEl.style.transform = "rotate(0deg)";
+      setTimeout(() => {
+        let spinDeg = 1440 + Math.floor(Math.random() * 360);
+        wheelEl.style.transition = "transform 4s cubic-bezier(0.2, 0.8, 0.3, 1)";
+        wheelEl.style.transform = `rotate(${spinDeg}deg)`;
+      }, 50);
+
+      document.getElementById("result").innerText = `You won: ${prize.name}`;
+      updateUI();
+    }
+
+    // --- UI ---
     function updateUI() {
       let acc = accounts[currentUser];
       document.getElementById("points").innerText = acc.points;
+
+      // inventory
       let inv = document.getElementById("inventory");
       inv.innerHTML = "";
       acc.inventory.forEach(item => {
@@ -164,39 +267,28 @@
         li.innerText = item;
         inv.appendChild(li);
       });
-      acc.themes.forEach(t => { document.body.classList.add("theme-" + t); });
+
+      // theme select
+      let themeSelect = document.getElementById("themeSelect");
+      themeSelect.innerHTML = "<option value=''>--Choose Theme--</option>";
+      acc.themes.forEach(t => {
+        let opt = document.createElement("option");
+        opt.value = t;
+        opt.innerText = t[0].toUpperCase() + t.slice(1) + " Theme";
+        if (t === acc.selectedTheme) opt.selected = true;
+        themeSelect.appendChild(opt);
+      });
+
+      if (acc.selectedTheme) applyTheme(acc.selectedTheme);
       saveData();
     }
 
-    function spin(type) {
+    function applyTheme(theme) {
       let acc = accounts[currentUser];
-      let cost = { bronze: 5, silver: 15, gold: 50 }[type];
-      if (acc.points < cost) { alert("Not enough points!"); return; }
-
-      acc.points -= cost;
-      let prize = getPrize(type);
-      acc.inventory.push(prize);
-
-      if (prize.includes("Theme")) {
-        let theme = prize.split(" ")[0].toLowerCase();
-        acc.themes.push(theme);
-        document.body.classList.add("theme-" + theme);
-      }
-
-      document.getElementById("result").innerText = "You won: " + prize;
-      updateUI();
-    }
-
-    function getPrize(type) {
-      const prizes = {
-        bronze: ["Sticker Pack", "Pencil Upgrade", "Dog Theme", "Nothing"],
-        silver: ["Pirate Theme", "Cool Hat", "1 Bonus Point", "Neon Theme"],
-        gold: ["Spooky Theme", "Golden Trophy", "VIP Badge", "50 Bonus Points"]
-      };
-      let prize = prizes[type][Math.floor(Math.random() * prizes[type].length)];
-      if (prize === "1 Bonus Point") accounts[currentUser].points += 1;
-      if (prize === "50 Bonus Points") accounts[currentUser].points += 50;
-      return prize;
+      acc.selectedTheme = theme;
+      document.body.className = "";
+      if (theme) document.body.classList.add("theme-" + theme);
+      saveData();
     }
 
     function addPoints() {
@@ -206,29 +298,7 @@
         accounts[currentUser].points += amt;
         updateUI();
         alert("Added " + amt + " points!");
-      } else {
-        alert("Wrong teacher code!");
-      }
-    }
-
-    function resetWithTeacher() {
-      let code = prompt("Enter teacher code:");
-      if (code !== TEACHER_SECRET) { alert("Wrong code"); return; }
-      let user = prompt("Enter username to reset:");
-      if (!accounts[user]) { alert("No such account"); return; }
-      let newPass = prompt("Enter new password:");
-      accounts[user].password = newPass;
-      saveData();
-      alert("Password reset for " + user);
-    }
-
-    function switchToLogin() {
-      document.getElementById("signupBox").classList.add("hidden");
-      document.getElementById("loginBox").classList.remove("hidden");
-    }
-    function switchToSignup() {
-      document.getElementById("loginBox").classList.add("hidden");
-      document.getElementById("signupBox").classList.remove("hidden");
+      } else alert("Wrong teacher code!");
     }
   </script>
 </body>
