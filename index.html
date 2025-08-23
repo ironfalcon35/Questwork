@@ -54,23 +54,21 @@
 
   @keyframes fadeIn{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
   @keyframes spinAnim{ from{ transform:rotate(0deg) scale(.5); opacity:0;} to{ transform:rotate(720deg) scale(1); opacity:1;} }
-  .collectible-spin { 
-  position: fixed; 
-  top: 50%; 
-  left: 50%; 
-  transform: translate(-50%, -50%); 
-  animation: spinAnim 1s ease forwards; 
-  z-index: 9999; 
-  display: flex; 
-  align-items: center; 
-  justify-content: center; 
-  width: 220px; 
-  height: 220px; 
-  background: rgba(0,0,0,.6); 
-  border: 3px solid #fff; 
-  border-radius: 16px; 
-  box-shadow: 0 12px 40px rgba(0,0,0,.6); 
+.collectible-spin {
+  position: fixed;
+  animation: spinAnim 1s ease forwards;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 220px;
+  height: 220px;
+  background: rgba(0,0,0,.6);
+  border: 3px solid #fff;
+  border-radius: 16px;
+  box-shadow: 0 12px 40px rgba(0,0,0,.6);
 }
+
 
   .collectible-spin img{ max-width:180px; max-height:180px; }
   .collectible-spin .label{ position:absolute; bottom:-36px; left:50%; transform:translateX(-50%); font-weight:700; background:rgba(0,0,0,.7); padding:6px 10px; border-radius:10px; border:1px solid #fff; }
@@ -384,15 +382,21 @@ function showCollectible(name){
   const overlay = document.createElement('div');
   overlay.className = 'collectible-spin';
 
-  // Pick an image if we have one, else use a fallback emoji tile
-  let imgURL = collectibleImages[name];
-  if(!imgURL && POKEMON_GEN1.includes(name)) imgURL = collectibleImages['Pokeball'];
+  // size of collectible box
+  const boxW = 220;
+  const boxH = 220;
+  
+  // random position within viewport
+  const maxX = window.innerWidth - boxW;
+  const maxY = window.innerHeight - boxH;
+  const randX = Math.floor(Math.random() * maxX);
+  const randY = Math.floor(Math.random() * maxY);
 
-  if(imgURL){
-    const img = document.createElement('img'); 
-    img.alt = name; 
-    img.src = imgURL; 
-    overlay.appendChild(img);
+  overlay.style.top = randY + "px";
+  overlay.style.left = randX + "px";
+  overlay.style.transform = "none"; // no translate center
+
+  // (rest of your code: add image/label/audio/etc.)
   } else {
     const box = document.createElement('div');
     box.style.width = '180px'; 
