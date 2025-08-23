@@ -17,6 +17,7 @@
     color:var(--text);
     min-height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center;
     transition:background 0.5s ease, color .3s ease;
+    <audio id="collectibleSound" src="https://raw.githubusercontent.com/ironfalcon35/Questwork/main/Batman.mp3" preload="auto"></audio>
   }
   .card{ background:var(--card-bg); padding:20px; border-radius:16px; box-shadow:0 8px 20px rgba(0,0,0,.4); max-width:760px; width:95%; margin:10px; animation:fadeIn .5s ease-in; }
   h2,h3{ margin-top:0; color:var(--accent); text-shadow:1px 1px 4px #000; }
@@ -54,7 +55,24 @@
 
   @keyframes fadeIn{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
   @keyframes spinAnim{ from{ transform:rotate(0deg) scale(.5); opacity:0;} to{ transform:rotate(720deg) scale(1); opacity:1;} }
-  .collectible-spin{ position:fixed; inset:auto 0 0 0; top:50%; left:50%; transform:translate(-50%,-50%); animation:spinAnim 1s ease forwards; z-index:9999; display:flex; align-items:center; justify-content:center; width:220px; height:220px; background:rgba(0,0,0,.6); border:3px solid #fff; border-radius:16px; box-shadow:0 12px 40px rgba(0,0,0,.6); }
+  .collectible-spin { 
+  position: fixed; 
+  top: 50%; 
+  left: 50%; 
+  transform: translate(-50%, -50%); 
+  animation: spinAnim 1s ease forwards; 
+  z-index: 9999; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  width: 220px; 
+  height: 220px; 
+  background: rgba(0,0,0,.6); 
+  border: 3px solid #fff; 
+  border-radius: 16px; 
+  box-shadow: 0 12px 40px rgba(0,0,0,.6); 
+}
+
   .collectible-spin img{ max-width:180px; max-height:180px; }
   .collectible-spin .label{ position:absolute; bottom:-36px; left:50%; transform:translateX(-50%); font-weight:700; background:rgba(0,0,0,.7); padding:6px 10px; border-radius:10px; border:1px solid #fff; }
 
@@ -372,14 +390,35 @@ function showCollectible(name){
   if(!imgURL && POKEMON_GEN1.includes(name)) imgURL = collectibleImages['Pokeball'];
 
   if(imgURL){
-    const img = document.createElement('img'); img.alt = name; img.src = imgURL; overlay.appendChild(img);
+    const img = document.createElement('img'); 
+    img.alt = name; 
+    img.src = imgURL; 
+    overlay.appendChild(img);
   } else {
     const box = document.createElement('div');
-    box.style.width = '180px'; box.style.height='180px'; box.style.borderRadius='12px'; box.style.background='linear-gradient(135deg,#444,#999)';
-    box.style.display='flex'; box.style.alignItems='center'; box.style.justifyContent='center'; box.style.fontSize='64px';
-    box.textContent = '🎁'; overlay.appendChild(box);
+    box.style.width = '180px'; 
+    box.style.height='180px'; 
+    box.style.borderRadius='12px'; 
+    box.style.background='linear-gradient(135deg,#444,#999)';
+    box.style.display='flex'; 
+    box.style.alignItems='center'; 
+    box.style.justifyContent='center'; 
+    box.style.fontSize='64px';
+    box.textContent = '🎁'; 
+    overlay.appendChild(box);
   }
-  const label = document.createElement('div'); label.className='label'; label.textContent = name; overlay.appendChild(label);
+
+  const label = document.createElement('div'); 
+  label.className='label'; 
+  label.textContent = name; 
+  overlay.appendChild(label);
+
+  // ⭐ Play sound when collectible shows
+  const sfx = document.getElementById('collectibleSound');
+  if(sfx){ 
+    sfx.currentTime = 0; 
+    sfx.play().catch(()=>{}); 
+  }
 
   document.body.appendChild(overlay);
   setTimeout(()=> overlay.remove(), 1200);
