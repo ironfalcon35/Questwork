@@ -135,13 +135,22 @@ const themeCatalog = {
 
 // === Collectible image lookup (fallbacks used if not found) ===
 const collectibleImages = {
-  'Cheese Collectible': 'https://i.imgur.com/MvJ3M6I.png',   // placeholder cheese icon
-  'Nyan Cat Collectible': 'https://i.imgur.com/VwV9bpl.png', // placeholder nyan
-  'Epic Sax Collectible': 'https://i.imgur.com/1v2fQkC.png', // placeholder sax
-  'Doge Crown Collectible': 'https://i.imgur.com/0b4F7nC.png',
-  'Pepe Collectible': 'https://i.imgur.com/o8sJc3T.png',
-  'Noob Collectible': 'https://i.imgur.com/3wA7OeZ.png',
-  'Pokeball': 'https://i.imgur.com/Vk7mR5t.png'
+  'Game Theory Collectible': 'https://i.imgur.com/m8K0vns.png',
+  'Film Theory Collectible': 'https://i.imgur.com/tiKfr2b.png',
+  'Food Theory Collectible': 'https://i.imgur.com/BDSdhLd.png',
+  'Style Theory Collectible': 'https://i.imgur.com/0wtEAkH.png',
+  'Shopping Cart Collectible': 'https://i.imgur.com/GUU94Nd.png',
+  'Bad Time Collectible': 'https://i.imgur.com/s8UNppm.png',
+  'Sussy Imposter Collectible': 'https://i.imgur.com/KIrh66U.png',   
+  'Pirate King Collectible': 'https://i.imgur.com/NMasPta.png',   
+  'Black Knight Collectible': 'https://i.imgur.com/1sfEzio.png',   
+  'Cheese Collectible': 'https://i.imgur.com/JIlzeJ4.png',   
+  'Nyan Cat Collectible': 'https://i.imgur.com/F2cFTGU.png', 
+  'Epic Sax Collectible': 'https://i.imgur.com/Mat8wsI.png', 
+  'Doge Crown Collectible': 'https://i.imgur.com/QeyMp2L.png',
+  'Pepe Collectible': 'https://i.imgur.com/MHQCJmw.png',
+  'Noob Collectible': 'https://i.imgur.com/W999p7P.png',
+  'Pokeball': 'https://i.imgur.com/ySofbkn.png'
 };
 
 // === Gen 1 Pokémon list (151) ===
@@ -200,7 +209,7 @@ const wheelPrizesBase = [
 
 // Add all Gen 1 Pokémon (each weight 5)
 const wheelPrizes = wheelPrizesBase.concat(
-  POKEMON_GEN1.map(p => ({ name:p, weight:5, type:'pokemon' }))
+  POKEMON_GEN1.map(p => ({ name:p, weight:3, type:'pokemon' }))
 );
 
 // === Storage ===
@@ -287,7 +296,7 @@ function spin(){
   const prizeDisplay = document.getElementById('prizeDisplay');
   const result = document.getElementById('result');
 
-  let flips = 30, step = 0, interval = 50;
+  let flips = 50, step = 0, interval = 75;
   const anim = setInterval(()=>{
     step++;
     const fake = available[Math.floor(Math.random()*available.length)]?.name || '?';
