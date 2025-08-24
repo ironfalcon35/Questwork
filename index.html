@@ -114,6 +114,21 @@
     <h3>Collectibles</h3>
     <ul id="collectibles"></ul>
 
+    <h3>Pokémon</h3>
+<ul id="pokemonList"></ul>
+
+<h3>Collectibles Progress</h3>
+<div style="width:90%; background:rgba(255,255,255,0.2); border-radius:8px; overflow:hidden; margin-bottom:10px;">
+  <div id="collectiblesProgressBar" style="height:20px; width:0%; background:var(--accent); text-align:center; color:#000; font-weight:bold; line-height:20px;">0%</div>
+</div>
+<p id="collectiblesProgressText">0 / 0 (0%)</p>
+
+<h3>Pokémon Progress</h3>
+<div style="width:90%; background:rgba(255,255,255,0.2); border-radius:8px; overflow:hidden; margin-bottom:10px;">
+  <div id="pokemonProgressBar" style="height:20px; width:0%; background:var(--btnA); text-align:center; color:#000; font-weight:bold; line-height:20px;">0%</div>
+</div>
+<p id="pokemonProgressText">0 / 0 (0%)</p>
+
     <h3>Theme Selector</h3>
     <select id="themeSelect" onchange="applyTheme(this.value)">
       <option value="">--Choose Theme--</option>
@@ -345,52 +360,72 @@ function spin(){
 function updateUI(){
   const acc = accounts[currentUser];
   if(!acc) return;
+
   document.getElementById('points').innerText = acc.points;
 
-  // inventory list
-  const inv = document.getElementById('inventory'); inv.innerHTML = '';
-  acc.inventory.forEach((item,idx)=>{
-    const li = document.createElement('li'); li.innerText = item;
-    const del = document.createElement('button'); del.innerText='x'; del.className='delete-btn';
-    del.onclick = ()=>{ acc.inventory.splice(idx,1); saveData(); updateUI(); };
-    li.appendChild(del); inv.appendChild(li);
+  // Inventory list
+  const inv = document.getElementById('inventory'); 
+  inv.innerHTML = '';
+  acc.inventory.forEach((item, idx)=>{
+    const li = document.createElement('li'); 
+    li.innerText = item;
+    const del = document.createElement('button'); 
+    del.innerText='x'; 
+    del.className='delete-btn';
+    del.onclick = ()=>{
+      acc.inventory.splice(idx,1); 
+      saveData(); 
+      updateUI();
+    };
+    li.appendChild(del); 
+    inv.appendChild(li);
   });
 
-  // collectibles list
-  const coll = document.getElementById('collectibles'); coll.innerHTML = '';
-  acc.collectibles.forEach((c)=>{
+  // Split collectibles into non-Pokémon & Pokémon
+  const nonPokemon = acc.collectibles.filter(c => !POKEMON_GEN1.includes(c));
+  const pokes = acc.collectibles.filter(c => POKEMON_GEN1.includes(c));
+
+  // Non-Pokémon collectibles list
+  const coll = document.getElementById('collectibles'); 
+  coll.innerHTML = '';
+  nonPokemon.forEach((c)=>{
     const li = document.createElement('li');
     li.innerHTML = `<span>${c}</span>`;
     li.onclick = ()=>showCollectible(c);
     coll.appendChild(li);
   });
 
-  <h3>Collectibles Progress</h3>
-<div style="width:90%; background:rgba(255,255,255,0.2); border-radius:8px; overflow:hidden; margin-bottom:10px;">
-  <div id="collectiblesProgressBar" style="height:20px; width:0%; background:var(--accent); text-align:center; color:#000; font-weight:bold; line-height:20px;">0%</div>
-</div>
-<p id="collectiblesProgressText">0 / 0 (0%)</p>
+  // Pokémon list (separate category)
+  const pokeUL = document.getElementById('pokemonList');
+  if (pokeUL){
+    pokeUL.innerHTML = '';
+    pokes.forEach((p)=>{
+      const li = document.createElement('li');
+      li.innerHTML = `<span>${p}</span>`;
+      li.onclick = ()=>showCollectible(p);
+      pokeUL.appendChild(li);
+    });
+  }
 
-<h3>Pokémon Progress</h3>
-<div style="width:90%; background:rgba(255,255,255,0.2); border-radius:8px; overflow:hidden; margin-bottom:10px;">
-  <div id="pokemonProgressBar" style="height:20px; width:0%; background:var(--btnA); text-align:center; color:#000; font-weight:bold; line-height:20px;">0%</div>
-</div>
-<p id="pokemonProgressText">0 / 0 (0%)</p>
-
-  // theme selector
+  // Theme selector
   const themeSelect = document.getElementById('themeSelect');
   themeSelect.innerHTML = "<option value=''>--Choose Theme--</option>";
   acc.themes.forEach(key=>{
-    const meta = themeCatalog[key]; if(!meta) return;
+    const meta = themeCatalog[key]; 
+    if(!meta) return;
     const opt = document.createElement('option');
-    opt.value = key; opt.innerText = meta.label; if(key===acc.selectedTheme) opt.selected = true;
+    opt.value = key; 
+    opt.innerText = meta.label; 
+    if(key===acc.selectedTheme) opt.selected = true;
     themeSelect.appendChild(opt);
   });
 
   if(acc.selectedTheme) applyTheme(acc.selectedTheme);
+
   saveData();
 
-  updateProgressBars(); 
+  // Update progress bars last (now that elements exist)
+  updateProgressBars();
 }
 
 function updateProgressBars(){
