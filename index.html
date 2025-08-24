@@ -365,6 +365,18 @@ function updateUI(){
     coll.appendChild(li);
   });
 
+  <h3>Collectibles Progress</h3>
+<div style="width:90%; background:rgba(255,255,255,0.2); border-radius:8px; overflow:hidden; margin-bottom:10px;">
+  <div id="collectiblesProgressBar" style="height:20px; width:0%; background:var(--accent); text-align:center; color:#000; font-weight:bold; line-height:20px;">0%</div>
+</div>
+<p id="collectiblesProgressText">0 / 0 (0%)</p>
+
+<h3>Pokémon Progress</h3>
+<div style="width:90%; background:rgba(255,255,255,0.2); border-radius:8px; overflow:hidden; margin-bottom:10px;">
+  <div id="pokemonProgressBar" style="height:20px; width:0%; background:var(--btnA); text-align:center; color:#000; font-weight:bold; line-height:20px;">0%</div>
+</div>
+<p id="pokemonProgressText">0 / 0 (0%)</p>
+
   // theme selector
   const themeSelect = document.getElementById('themeSelect');
   themeSelect.innerHTML = "<option value=''>--Choose Theme--</option>";
@@ -377,6 +389,37 @@ function updateUI(){
 
   if(acc.selectedTheme) applyTheme(acc.selectedTheme);
   saveData();
+
+  updateProgressBars(); 
+}
+
+function updateProgressBars(){
+  const acc = accounts[currentUser];
+  if(!acc) return;
+
+  // Collectibles progress
+  const totalCollectibles = wheelPrizes.filter(p=>p.type==='collectible').length;
+  const ownedCollectibles = acc.collectibles.filter(c=>{
+    return wheelPrizes.some(p=>p.name===c && p.type==='collectible');
+  }).length;
+  const collectPercent = Math.round((ownedCollectibles / totalCollectibles) * 100);
+  
+  const cBar = document.getElementById('collectiblesProgressBar');
+  const cText = document.getElementById('collectiblesProgressText');
+  cBar.style.width = collectPercent + '%';
+  cBar.textContent = collectPercent + '%';
+  cText.textContent = `${ownedCollectibles} / ${totalCollectibles} (${collectPercent}%)`;
+
+  // Pokémon progress
+  const totalPokemon = POKEMON_GEN1.length;
+  const ownedPokemon = acc.collectibles.filter(c=>POKEMON_GEN1.includes(c)).length;
+  const pokePercent = Math.round((ownedPokemon / totalPokemon) * 100);
+  
+  const pBar = document.getElementById('pokemonProgressBar');
+  const pText = document.getElementById('pokemonProgressText');
+  pBar.style.width = pokePercent + '%';
+  pBar.textContent = pokePercent + '%';
+  pText.textContent = `${ownedPokemon} / ${totalPokemon} (${pokePercent}%)`;
 }
 
 function applyTheme(themeKey){
