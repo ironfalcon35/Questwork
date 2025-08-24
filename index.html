@@ -5,6 +5,7 @@
 <title>Questwork</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&display=swap" rel="stylesheet">
 
 <style>
   :root{
@@ -40,19 +41,19 @@
   .theme-checker{ background:url('https://i.imgur.com/x9JEZ61.png') repeat; }
   .theme-bw{ background:linear-gradient(90deg,#000,#fff); color:#fff; }
   .theme-neon{ background:linear-gradient(135deg,#0f0f0f,#00ffcc); }
-  .theme-space{ background:#000 url('https://i.imgur.com/CbK7Ogy.png') center/cover no-repeat; }
-  .theme-time{ background:#d1c145 url('https://i.imgur.com/wJDrRrf.png') center/cover no-repeat; }
-  .theme-forest{ background:#000 url('https://i.imgur.com/HzTwfvV.png') center/cover no-repeat; }
+  .theme-space{ background:#000 url('https://i.imgur.com/CbK7Ogy.png') center/cover no-repeat; font-family:'Optima', regular; }
+  .theme-time{ background:#d1c145 url('https://i.imgur.com/wJDrRrf.png') center/cover no-repeat; font-family:'Gill Sans', regular; }
+  .theme-forest{ background:#000 url('https://i.imgur.com/HzTwfvV.png') center/cover no-repeat; font-family:'Trattatello', regular; }
   .theme-desert{ background:#000 url('https://i.imgur.com/y6spIo8.png') center/cover no-repeat; }
-  .theme-cyber{ background:#000 url('https://i.imgur.com/OMSBJoH.png') center/cover no-repeat; }
-  .theme-music{ background:#111 url('https://i.imgur.com/uldGxyn.png') center/cover no-repeat; }
+  .theme-cyber{ background:#000 url('https://i.imgur.com/OMSBJoH.png') center/cover no-repeat; font-family:'Optima', regular; }
+  .theme-music{ background:#111 url('https://i.imgur.com/uldGxyn.png') center/cover no-repeat; font-family:'Georgia', regular; }
   .theme-ice{ background:#111 url('https://i.imgur.com/NoMHwCU.png') center/cover no-repeat; }
-  .theme-underwater{ background:#111 url('https://i.imgur.com/kPsUNG2.png') center/cover no-repeat; }
-  .theme-dog{ background:url('https://i.imgur.com/h6KGr0v.png') center/cover no-repeat; }
-  .theme-undertale{ background:#000 url('https://i.imgur.com/b8Pni9x.png') center/cover no-repeat; color:#fff; font-family: 'Press Start 2P', 'Courier New', Courier, monospace;}
-  .theme-castle{ background:url('https://i.imgur.com/dVZ0pgd.png') center/cover no-repeat; font-family:'Zapfino', regular;}
-  .theme-amazing{ background:#000 url('https://i.imgur.com/5aXp1BS.png') center/cover no-repeat; } 
-  .theme-pirate{ background:url('https://i.imgur.com/OM5jOIc.png') center/cover no-repeat; }
+  .theme-underwater{ background:#111 url('https://i.imgur.com/kPsUNG2.png') center/cover no-repeat; font-family:'Chalkboard', regular; }
+  .theme-dog{ background:url('https://i.imgur.com/h6KGr0v.png') center/cover no-repeat; font-family:'Annai MN', regular; }
+  .theme-undertale{ background:#000 url('https://i.imgur.com/b8Pni9x.png') center/cover no-repeat; color:#fff; font-family: 'Press Start 2P', 'Courier New', Courier, monospace; }
+  .theme-castle{ background:url('https://i.imgur.com/dVZ0pgd.png') center/cover no-repeat; font-family:'Luminari', regular; }
+  .theme-amazing{ background:#000 url('https://i.imgur.com/5aXp1BS.png') center/cover no-repeat; font-family:'Comic Sans MS', regular; } 
+  .theme-pirate{ background:url('https://i.imgur.com/OM5jOIc.png') center/cover no-repeat; font-family: 'IM Fell English SC', 'serif'; }
 
   @keyframes fadeIn{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
   @keyframes spinAnim{ from{ transform:rotate(0deg) scale(.5); opacity:0;} to{ transform:rotate(720deg) scale(1); opacity:1;} }
@@ -200,7 +201,7 @@ const wheelPrizesBase = [
   { name:'Underwater Theme', weight:15, type:'theme', themeKey:'underwater' },
   { name:'Dog Theme', weight:5, type:'theme', themeKey:'dog' },
   { name:'Undertale Theme', weight:4, type:'theme', themeKey:'undertale' },
-  { name:'Castle Theme', weight:300, type:'theme', themeKey:'castle' },
+  { name:'Castle Theme', weight:3, type:'theme', themeKey:'castle' },
   { name:'Amazing Digital Theme', weight:2, type:'theme', themeKey:'amazing' },
   { name:'Pirate Theme', weight:1, type:'theme', themeKey:'pirate' },
 
