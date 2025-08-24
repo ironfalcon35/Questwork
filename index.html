@@ -11,6 +11,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
 
 <style>
   :root{
@@ -59,6 +60,7 @@
   .theme-castle{ background:url('https://i.imgur.com/dVZ0pgd.png') center/cover no-repeat; font-family:'Luminari', regular; }
   .theme-amazing{ background:#000 url('https://i.imgur.com/5aXp1BS.png') center/cover no-repeat; font-family:'Comic Sans MS', regular; } 
   .theme-pirate{ background:url('https://i.imgur.com/OM5jOIc.png') center/cover no-repeat; font-family: 'IM Fell English SC', 'serif'; }
+  .theme-minecraft{ background:#000 url('https://i.imgur.com/qkmWKUr.png') center/cover no-repeat; color:#fff; font-family: 'VT323', 'monospace'; } 
 
   @keyframes fadeIn{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
   @keyframes spinAnim{ from{ transform:rotate(0deg) scale(.5); opacity:0;} to{ transform:rotate(720deg) scale(1); opacity:1;} }
@@ -171,6 +173,7 @@ const themeCatalog = {
   castle: { label: 'Castle Theme' },
   amazing: { label: 'Amazing Digital Theme' },
   pirate: { label: 'Pirate Theme' },
+  minecraft: { label: 'Minecraft Theme' },
 };
 
 // === Collectible image lookup (fallbacks used if not found) ===
@@ -224,6 +227,7 @@ const wheelPrizesBase = [
   { name:'Castle Theme', weight:3, type:'theme', themeKey:'castle' },
   { name:'Amazing Digital Theme', weight:2, type:'theme', themeKey:'amazing' },
   { name:'Pirate Theme', weight:1, type:'theme', themeKey:'pirate' },
+  { name:'Minecraft Theme', weight:4, type:'theme', themeKey:'minecraft' },
 
   // Non-Pokémon Collectibles (refund 25 on duplicate)
   { name:'Pirate King Collectible', weight:1, type:'collectible' },
@@ -336,7 +340,7 @@ function spin(){
   const prizeDisplay = document.getElementById('prizeDisplay');
   const result = document.getElementById('result');
 
-  let flips = 50, step = 0, interval = 75;
+  let flips = 25, step = 0, interval = 50;
   const anim = setInterval(()=>{
     step++;
     const fake = available[Math.floor(Math.random()*available.length)]?.name || '?';
